@@ -134,45 +134,50 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col gap-4 p-6 h-full">
-    <div class="relative shrink-0">
-      <input
-        ref="input"
-        v-model="keyword"
-        class="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-lg outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="搜索角色..."
-        type="text"
-        @keydown.enter="handleSearch"
-      >
-      <div 
-        class="absolute right-3 top-1/2 -translate-y-1/2 text-xl p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-        @click="handleSearch"
-      >
-        <div v-if="loading" i-carbon-circle-dash class="animate-spin text-blue-500" />
-        <div v-else i-carbon-search />
+    <div class="relative shrink-0 flex items-center gap-3">
+      <!-- Small Logo -->
+      <img src="/logo.png" class="w-8 h-8 object-contain" />
+      
+      <div class="relative flex-1">
+        <input
+          ref="input"
+          v-model="keyword"
+          class="w-full px-4 py-3 rounded-lg border-2 border-black bg-white text-lg text-black outline-none focus:border-[#e4007f]"
+          placeholder="搜索角色..."
+          type="text"
+          @keydown.enter="handleSearch"
+        >
+        <div 
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-xl p-2 cursor-pointer hover:bg-gray-100 rounded-full transition-colors"
+          @click="handleSearch"
+        >
+          <div v-if="loading" i-carbon-circle-dash class="animate-spin text-[#e4007f]" />
+          <div v-else i-carbon-search class="text-black" />
+        </div>
       </div>
     </div>
-    <p class="text-xs text-gray-400 px-1">
+    <p class="text-xs text-black px-1 ml-11 font-medium">
       提示：如果搜不到，请尝试输入<b>完整全名</b> (Bangumi 搜索较严格)。例如：`四宫`搜不到，就输入`四宫辉夜`。 
     </p>
     
     <div class="flex-1 overflow-y-auto min-h-0">
       <!-- Tabs -->
-      <div class="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+      <div class="flex border-b-2 border-gray-200 mb-4">
         <button 
-          class="flex-1 py-2 text-sm font-medium transition-colors relative"
-          :class="activeTab === 'search' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
+          class="flex-1 py-2 text-sm font-bold transition-colors relative"
+          :class="activeTab === 'search' ? 'text-[#e4007f]' : 'text-black hover:text-[#e4007f]'"
           @click="activeTab = 'search'"
         >
           搜索角色
-          <div v-if="activeTab === 'search'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400" />
+          <div v-if="activeTab === 'search'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#e4007f]" />
         </button>
         <button 
-          class="flex-1 py-2 text-sm font-medium transition-colors relative"
-          :class="activeTab === 'custom' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
+          class="flex-1 py-2 text-sm font-bold transition-colors relative"
+          :class="activeTab === 'custom' ? 'text-[#e4007f]' : 'text-black hover:text-[#e4007f]'"
           @click="activeTab = 'custom'"
         >
           自定义上传
-          <div v-if="activeTab === 'custom'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400" />
+          <div v-if="activeTab === 'custom'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#e4007f]" />
         </button>
       </div>
 
@@ -182,17 +187,17 @@ onMounted(() => {
           <div
             v-for="item in searchResult"
             :key="item.id"
-            class="break-inside-avoid group flex flex-col gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            class="break-inside-avoid group flex flex-col gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors"
             @click="handleAdd(item)"
           >
-            <div class="w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 relative">
+            <div class="w-full overflow-hidden rounded-lg bg-gray-100 relative">
               <img 
                 :src="item.images?.large || item.images?.medium || item.images?.grid" 
                 class="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
               >
             </div>
-            <p class="w-full text-center text-sm font-medium px-1" :title="item.name">
+            <p class="w-full text-center text-sm font-bold text-black px-1" :title="item.name">
               {{ item.name }}
             </p>
           </div>
@@ -201,7 +206,7 @@ onMounted(() => {
         <!-- Load More Button -->
         <div v-if="searchResult.length && hasMore" class="flex justify-center pb-6">
           <button 
-            class="px-6 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-sm font-medium transition-colors flex items-center gap-2"
+            class="px-6 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-bold text-black transition-colors flex items-center gap-2"
             :disabled="loading"
             @click="loadMore"
           >
@@ -214,7 +219,7 @@ onMounted(() => {
           <div i-carbon-warning-filled class="text-4xl mb-2" />
           <p>{{ errorMessage }}</p>
         </div>
-        <div v-else-if="keyword && !loading" class="flex flex-col items-center justify-center h-64 text-gray-400">
+        <div v-else-if="keyword && !loading" class="flex flex-col items-center justify-center h-64 text-black">
           <div i-carbon-search class="text-4xl mb-2" />
           <p>未找到相关角色</p>
         </div>
@@ -222,12 +227,11 @@ onMounted(() => {
 
       <!-- Custom Upload Tab Content -->
       <div v-else class="p-4 flex flex-col gap-4">
-        <!-- Removed Name Input as requested -->
         
         <div class="flex flex-col gap-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">上传图片</label>
+          <label class="text-sm font-bold text-black">上传图片</label>
           <div 
-            class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-colors relative"
+            class="border-2 border-dashed border-black rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer hover:border-[#e4007f] transition-colors relative"
             @click="triggerFileInput"
             @dragover.prevent
             @drop.prevent="handleDrop"
@@ -242,13 +246,13 @@ onMounted(() => {
             <div v-if="customImagePreview" class="w-32 h-auto mb-2">
               <img :src="customImagePreview" class="w-full h-full object-cover rounded-lg shadow-md">
             </div>
-            <div v-else i-carbon-image class="text-4xl text-gray-400 mb-2" />
-            <p class="text-sm text-gray-500">{{ customImagePreview ? '点击更换图片' : '点击或拖拽上传图片' }}</p>
+            <div v-else i-carbon-image class="text-4xl text-black mb-2" />
+            <p class="text-sm text-black font-medium">{{ customImagePreview ? '点击更换图片' : '点击或拖拽上传图片' }}</p>
           </div>
         </div>
 
         <button 
-          class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+          class="w-full py-3 bg-[#e4007f] hover:bg-[#c0006b] text-white rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-4"
           :disabled="!customImagePreview"
           @click="handleCustomAdd"
         >

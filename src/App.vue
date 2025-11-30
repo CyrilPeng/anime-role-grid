@@ -109,18 +109,19 @@ async function handleSave() {
 
         <!-- Template Switcher (Dropdown) -->
         <div class="flex items-center gap-2">
-          <label for="template-select" class="text-sm text-gray-500 dark:text-gray-400">当前模板:</label>
+          <img src="/logo.png" class="w-5 h-5 object-contain" />
+          <label for="template-select" class="text-sm text-black font-bold">当前模板:</label>
           <div class="relative">
             <select
               id="template-select"
               v-model="currentTemplateId"
-              class="appearance-none bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-1 pl-3 pr-8 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              class="appearance-none bg-white border-2 border-black text-black py-1 pl-3 pr-8 rounded-md text-sm font-bold focus:outline-none focus:border-[#e4007f] cursor-pointer"
             >
               <option v-for="template in TEMPLATES" :key="template.id" :value="template.id">
                 {{ template.name }}
               </option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-black">
               <div i-carbon-chevron-down class="text-xs" />
             </div>
           </div>

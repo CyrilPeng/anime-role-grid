@@ -81,13 +81,13 @@ function getImageUrl(url: string) {
     <!-- Watermark for Export -->
     <div 
       v-if="forExport" 
-      class="absolute bottom-2 right-4 flex items-center gap-2 pointer-events-none"
+      class="absolute bottom-2 right-4 flex items-center gap-1 pointer-events-none"
     >
       <span 
-        class="text-black text-xs" 
-        style="font-family: 'FZQingKeBenYueSong', 'FangSong', 'STFangSong', serif;"
+        class="text-black text-sm font-bold" 
+        style="font-family: 'Noto Serif SC', 'FZQingKeBenYueSong', 'FangSong', serif;"
       >
-        由 项目 【我推<span style="color: #e4007f;">的</span>格子】 生成
+        【我推<span style="color: #e4007f;">的</span>格子】
       </span>
       <img src="/logo.png" class="w-6 h-6 object-contain" />
     </div>
