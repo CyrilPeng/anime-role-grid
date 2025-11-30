@@ -25,11 +25,18 @@ function handleAdd(character: GridItemCharacter) {
   const index = currentSlotIndex.value
   if (index === null) return
   
-  const item = list.value[index]
-  if (!item) return
+  // Create a shallow copy of the list to trigger the setter
+  const newList = [...list.value]
+  if (!newList[index]) return
 
   // Update the character in the selected slot
-  item.character = character
+  newList[index] = {
+    ...newList[index],
+    character
+  }
+  
+  // Trigger the computed setter in storage.ts
+  list.value = newList
   
   // Close search
   showSearch.value = false
