@@ -44,6 +44,11 @@
       <p class="font-serif italic opacity-60 text-xs mt-6 tracking-wide">
         "Create, Share, and Discover your Anime Taste."
       </p>
+
+      <!-- Disclaimer -->
+      <p class="text-[10px] opacity-40 mt-2">
+        仅供个人娱乐使用，禁止用于任何商业用途
+      </p>
     </div>
   </footer>
 </template>

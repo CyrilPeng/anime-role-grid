@@ -28,7 +28,10 @@ function getImageUrl(url: string) {
 </script>
 
 <template>
-  <div class="w-full flex justify-center">
+  <div 
+    class="w-full flex justify-center relative"
+    :class="{ 'bg-white py-8': forExport }"
+  >
     <!-- 
       Responsive Grid:
       - w-full with max-w to ensure it doesn't get too wide on desktop
@@ -74,6 +77,13 @@ function getImageUrl(url: string) {
         <!-- Hover Effect -->
         <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
       </div>
+    </div>
+    <!-- Watermark for Export -->
+    <div 
+      v-if="forExport" 
+      class="absolute bottom-2 right-4 text-gray-400 font-serif italic text-sm opacity-60 pointer-events-none"
+    >
+      anime-role-grid
     </div>
   </div>
 </template>
