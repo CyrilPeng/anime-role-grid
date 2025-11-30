@@ -229,11 +229,11 @@ async function handleSave() {
             <img 
               v-if="!imageLoadError"
               src="/cana.png" 
-              class="w-full h-full object-contain animate-bounce" 
+              class="w-full h-full object-contain" 
               alt="Success"
               @error="imageLoadError = true"
             />
-            <div v-else class="text-6xl animate-bounce">🎉</div>
+            <div v-else class="text-6xl">🎉</div>
           </div>
           <h3 class="text-2xl font-bold mb-2 text-gray-900" style="font-family: 'Noto Serif SC', serif;">保存成功！</h3>
           <p class="text-gray-600 mb-8 font-medium">图片已保存到相册，快去分享给朋友们吧！</p>
