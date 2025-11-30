@@ -115,7 +115,7 @@ function getImageUrl(url: string) {
     <!-- Watermark for Export -->
     <div 
       v-if="forExport" 
-      class="absolute bottom-2 right-4 flex items-center gap-1 pointer-events-none"
+      class="absolute bottom-1 right-4 flex items-center gap-1 pointer-events-none"
     >
       <span 
         class="text-black text-sm font-bold tracking-widest" 
