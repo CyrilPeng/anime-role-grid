@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { GridItem } from '~/types'
 
-defineProps<{
+const props = defineProps<{
   list: GridItem[]
+  cols?: number
 }>()
+
+const gridCols = computed(() => props.cols || 5)
 
 const emit = defineEmits(['select-slot'])
 
@@ -13,63 +17,61 @@ function handleSelect(index: number) {
 
 function getProxyUrl(url: string) {
   if (!url) return ''
-  // If it's a Base64 string (custom upload), return as is
   if (url.startsWith('data:')) return url
-  
-  // Use wsrv.nl as CORS proxy
-  // Remove protocol to avoid double encoding issues sometimes, but wsrv handles full URLs fine.
-  // We strip 'https:' just to be clean or pass full. wsrv expects 'url' param.
-  // Example: https://wsrv.nl/?url=lain.bgm.tv/...&output=png
   return `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=png`
 }
 </script>
 
 <template>
-  <div class="flex justify-center p-4">
+  <div class="w-full flex justify-center">
     <!-- 
-      Legacy Style Grid:
-      - Fixed width: 600px (120px * 5 columns)
-      - Borders: Container has Top/Left, Items have Right/Bottom. This ensures consistent 2px lines everywhere.
-      - No gaps
-      - White background
+      Responsive Grid:
+      - w-full with max-w to ensure it doesn't get too wide on desktop
+      - aspect-ratio ensures cells maintain shape
+      - text scales with breakpoints
     -->
-    <div id="grid-capture-target" class="grid grid-cols-5 border-t-2 border-l-2 border-black bg-white w-[600px] mx-auto box-content" style="box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+    <div 
+      id="grid-capture-target" 
+      class="grid border-t-2 border-l-2 border-black bg-white mx-auto box-content"
+      :style="{ 
+        gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
+        width: '100%',
+        maxWidth: `${gridCols * 120}px`,
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+      }"
+    >
       <div
         v-for="(item, index) in list"
         :key="index"
-        class="relative w-[120px] h-[187px] border-r-2 border-b-2 border-black cursor-pointer group box-border"
+        class="relative border-r-2 border-b-2 border-black cursor-pointer group box-border flex flex-col"
+        style="aspect-ratio: 120/187;"
         @click="handleSelect(index)"
       >
         <!-- Character Image -->
-        <img 
-          v-if="item.character"
-          :src="getProxyUrl(item.character.image)" 
-          class="w-full h-[160px] object-cover object-top block"
-          loading="lazy"
-          crossorigin="anonymous"
-        >
-        
-        <!-- Empty State Placeholder -->
-        <div 
-          v-else 
-          class="w-full h-[160px] bg-white"
-        />
-
-        <!-- Label Area (Bottom) -->
-        <div class="h-[25px] flex items-center justify-center text-center text-sm font-bold text-black bg-white border-t-2 border-black overflow-hidden px-1">
-          <span class="truncate w-full">{{ item.label }}</span>
+        <!-- flex-grow ensures image takes available space minus label -->
+        <div class="flex-grow w-full relative overflow-hidden">
+          <img 
+            v-if="item.character"
+            :src="getProxyUrl(item.character.image)" 
+            class="absolute inset-0 w-full h-full object-cover object-top"
+            loading="lazy"
+            crossorigin="anonymous"
+          >
+          <!-- Empty State Placeholder -->
+          <div v-else class="absolute inset-0 bg-white" />
         </div>
 
-        <!-- Character Name Overlay (Optional, only on hover or if needed) -->
-        <!-- In legacy style, character name wasn't always shown, but let's keep it subtle or remove it to be strict. 
-             The user said "completely copy original". Original has label at bottom. 
-             If a character is selected, does it show the character name? 
-             Looking at legacy code: 
-             `ctx.fillText(type, left + colWidth / 2, top + rowHeight - fontHeight / 2)` -> Types are drawn at bottom.
-             Images are drawn above.
-             It doesn't seem to draw character name text on the canvas, just the image.
-             So we will hide character name text to be strict, or maybe show it on hover title.
+        <!-- Label Area (Bottom) -->
+        <!-- Fixed height ratio or fixed height? 
+             Original was 25px on 187px height (~13%). 
+             Let's use a fixed height but scaled with text. 
+             Actually, for pixel perfect look on desktop, we want 25px. 
+             On mobile, we might want it smaller. 
+             Let's try a percentage height or flex basis.
         -->
+        <div class="h-[20px] md:h-[25px] flex-shrink-0 flex items-center justify-center text-center bg-white border-t-2 border-black overflow-hidden px-1">
+          <span class="truncate w-full text-[10px] md:text-sm font-bold text-black leading-none">{{ item.label }}</span>
+        </div>
         
         <!-- Hover Effect -->
         <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -79,8 +81,5 @@ function getProxyUrl(url: string) {
 </template>
 
 <style scoped>
-/* Ensure the grid borders are crisp */
-.grid {
-  /* box-sizing: border-box; */
-}
+/* Hide scrollbar for cleaner look if desired, but keeping it is better for usability */
 </style>
