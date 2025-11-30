@@ -59,6 +59,7 @@ function handleAdd(character: GridItemCharacter) {
 }
 
 const saving = ref(false)
+const imageLoadError = ref(false)
 
 import { exportGridAsImage } from '~/logic/export'
 
@@ -224,7 +225,16 @@ async function handleSave() {
           class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-sm w-full transform transition-all border-2 border-[#e4007f]" 
           @click.stop
         >
-          <img src="/cana.webp" class="w-25 h-25 object-contain mx-auto mb-4 animate-bounce" alt="Success" />
+          <div class="w-32 h-32 mx-auto mb-4 flex items-center justify-center">
+            <img 
+              v-if="!imageLoadError"
+              src="/cana.webp" 
+              class="w-full h-full object-contain animate-bounce" 
+              alt="Success"
+              @error="imageLoadError = true"
+            />
+            <div v-else class="text-6xl animate-bounce">🎉</div>
+          </div>
           <h3 class="text-2xl font-bold mb-2 text-gray-900" style="font-family: 'Noto Serif SC', serif;">保存成功！</h3>
           <p class="text-gray-600 mb-8 font-medium">图片已保存到相册，快去分享给朋友们吧！</p>
           
