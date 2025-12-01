@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { onClickOutside } from '@vueuse/core'
-// import html2canvas from 'html2canvas'
 import Header from '~/components/Header.vue'
 import Grid from '~/components/Grid.vue'
 import Search from '~/components/Search.vue'
 import Footer from '~/components/Footer.vue'
+import GuideModal from '~/components/GuideModal.vue'
 import { list, name, currentTemplateId } from '~/logic/storage'
 import { TEMPLATES } from '~/logic/templates'
 import type { GridItemCharacter } from '~/types'
+import { exportGridAsImage } from '~/logic/export'
 
 const showSearch = ref(false)
 const showShareModal = ref(false)
+const showGuideModal = ref(false)
 const currentSlotIndex = ref<number | null>(null)
 
 // Dropdown Logic
@@ -60,8 +62,6 @@ function handleAdd(character: GridItemCharacter) {
 
 const saving = ref(false)
 const imageLoadError = ref(false)
-
-import { exportGridAsImage } from '~/logic/export'
 
 async function handleSave() {
   if (saving.value) return
@@ -112,6 +112,14 @@ async function handleSave() {
           <span>{{ saving ? '生成中...' : '保存高清图片' }}</span>
         </button>
 
+        <!-- Guide Button -->
+        <button 
+          @click="showGuideModal = true"
+          class="text-xs text-gray-500 hover:text-[#e4007f] flex items-center gap-1 transition-colors border-b border-transparent hover:border-[#e4007f]"
+        >
+          <div class="i-carbon-help" />
+          <span>食用指南 & 常见问题</span>
+        </button>
 
         <!-- Template Switcher (Dropdown) -->
         <div class="flex items-center gap-2">
@@ -161,6 +169,9 @@ async function handleSave() {
     </div>
 
     <Footer />
+
+    <!-- Modals -->
+    <GuideModal :show="showGuideModal" @close="showGuideModal = false" />
 
     <Transition
       enter-active-class="transition duration-200 ease-out"
