@@ -11,18 +11,27 @@
   <meta name="keywords" content="我推的格子,动画角色喜好表,Anime Grid,二次元,CP问卷,推し,Bangumi,生成器">
 
   <!-- Open Graph / Facebook -->
+  <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://oshigrid.me/">
   <meta property="og:title" content="【我推的格子】动画角色喜好表生成器">
   <meta property="og:description" content="高颜值的在线动画角色喜好表生成器。支持自动搜索，一键生成高清大图。">
-  <meta property="og:image" content="https://oshigrid.me/example.png">
+  <meta property="og:image" content="https://oshigrid.me/logo.png">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://oshigrid.me/">
   <meta property="twitter:title" content="【我推的格子】动画角色喜好表生成器">
   <meta property="twitter:description" content="高颜值的在线动画角色喜好表生成器。支持自动搜索，一键生成高清大图。">
-  <meta property="twitter:image" content="https://oshigrid.me/example.png">
+  <meta property="twitter:image" content="https://oshigrid.me/logo.png">
+
+  <!-- QQ / WeChat / Generic -->
+  <meta itemprop="name" content="【我推的格子】动画角色喜好表生成器">
+  <meta itemprop="image" content="https://oshigrid.me/logo.png">
+  <meta name="description" itemprop="description" content="高颜值的在线动画角色喜好表生成器。支持自动搜索，一键生成高清大图。">
+
+  <!-- Weibo / Douban / Zhihu -->
+  <meta property="og:site_name" content="我推的格子">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,6 +39,10 @@
 </head>
 
 <body>
+  <!-- WeChat Share Image Fallback (Hidden but accessible to crawler) -->
+  <div style="display:none; visibility:hidden;">
+    <img src="/logo.png" alt="WeChat Share Logo" width="300" height="300" />
+  </div>
   <div id="app"></div>
   <script type="module" src="/src/main.ts"></script>
 </body>
