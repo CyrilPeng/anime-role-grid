@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 // import html2canvas from 'html2canvas'
 import Header from '~/components/Header.vue'
@@ -60,7 +60,6 @@ function handleAdd(character: GridItemCharacter) {
 
 const saving = ref(false)
 const imageLoadError = ref(false)
-const exportGridKey = ref(0) // Key to force re-render of export grid
 
 import { exportGridAsImage } from '~/logic/export'
 
@@ -69,13 +68,10 @@ async function handleSave() {
   saving.value = true
   
   try {
-    // Force re-render of the export grid to ensure latest data
-    exportGridKey.value++
-    await nextTick()
-    // Give Vue a moment to mount the new DOM (increased for mobile stability)
-    await new Promise(resolve => setTimeout(resolve, 800))
+    // Give UI a moment to show loading state
+    await new Promise(resolve => setTimeout(resolve, 100))
 
-    await exportGridAsImage('grid-export-target', 'anime-grid')
+    await exportGridAsImage(list.value, currentTemplateId.value, name.value, 'anime-grid')
     showShareModal.value = true
   } catch (error: any) {
     console.error('Export failed:', error)
@@ -104,23 +100,6 @@ async function handleSave() {
         v-model:customTitle="name"
         @select-slot="handleSelectSlot"
       />
-
-      <!-- Hidden Export Grid (Fixed Desktop Size, Proxy URLs) -->
-      <!-- Positioned off-screen but rendered -->
-      <div 
-        class="fixed top-0 left-[-9999px] pointer-events-none"
-        :style="{ width: `${currentTemplate.cols * 120}px` }"
-      >
-        <Grid 
-          id="grid-export-target"
-          :key="exportGridKey"
-          :list="list" 
-          :cols="currentTemplate.cols"
-          :title="currentTemplate.name"
-          :custom-title="name"
-          :for-export="true"
-        />
-      </div>
 
       <div class="flex flex-col items-center gap-4">
         <button 
