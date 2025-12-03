@@ -6,6 +6,7 @@ import Grid from '~/components/Grid.vue'
 import Search from '~/components/Search.vue'
 import Footer from '~/components/Footer.vue'
 import GuideModal from '~/components/GuideModal.vue'
+import FirstTimeGuide from '~/components/FirstTimeGuide.vue'
 import { list, name, currentTemplateId } from '~/logic/storage'
 import { TEMPLATES } from '~/logic/templates'
 import type { GridItemCharacter } from '~/types'
@@ -14,6 +15,16 @@ import { exportGridAsImage } from '~/logic/export'
 const showSearch = ref(false)
 const showShareModal = ref(false)
 const showGuideModal = ref(false)
+const showFirstTimeGuide = ref(false)
+
+// Check for first time visit
+if (typeof window !== 'undefined') {
+  const hasShown = localStorage.getItem('hasShownFirstTimeGuide')
+  if (!hasShown) {
+    showFirstTimeGuide.value = true
+    localStorage.setItem('hasShownFirstTimeGuide', 'true')
+  }
+}
 const currentSlotIndex = ref<number | null>(null)
 
 // Dropdown Logic
@@ -171,6 +182,7 @@ async function handleSave() {
     <Footer />
 
     <!-- Modals -->
+    <FirstTimeGuide :show="showFirstTimeGuide" @close="showFirstTimeGuide = false" />
     <GuideModal :show="showGuideModal" @close="showGuideModal = false" />
 
     <Transition
