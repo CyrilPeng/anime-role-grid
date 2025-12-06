@@ -5,6 +5,9 @@ CREATE TABLE saves (
     id TEXT PRIMARY KEY,
     template_id TEXT NOT NULL,
     custom_title TEXT,
+    user_hash TEXT,               -- NEW: Unique User ID (Anonymized)
+    device_type TEXT,             -- NEW: Mobile / Desktop
+    referer TEXT,                 -- NEW: Traffic Source
     created_at INTEGER DEFAULT (strftime('%s', 'now'))
 );
 
@@ -19,5 +22,6 @@ CREATE TABLE save_items (
 );
 
 CREATE INDEX idx_saves_template ON saves(template_id);
+CREATE INDEX idx_saves_user ON saves(user_hash);
 CREATE INDEX idx_items_char ON save_items(character_name);
 CREATE INDEX idx_items_label ON save_items(slot_label);
