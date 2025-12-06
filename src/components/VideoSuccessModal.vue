@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   show: boolean
   format: 'mp4' | 'webm' | null
 }>()
