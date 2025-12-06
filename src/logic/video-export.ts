@@ -104,14 +104,15 @@ export function useVideoExport() {
             const ctx = canvas.getContext('2d')
             if (!ctx) throw new Error('Canvas not supported')
 
-            // Animation Parameters
-            let durationPerItem = 180
-            if (settings.speed === 'fast') durationPerItem = 90
-            if (settings.speed === 'slow') durationPerItem = 300
+            // Animation Parameters (Time-based for consistency)
+            let durationSeconds = 3
+            if (settings.speed === 'fast') durationSeconds = 1.5
+            if (settings.speed === 'slow') durationSeconds = 5
 
-            const transitionFrames = 30 // 30fps adjustment
+            const targetFPS = 30
+            const durationPerItem = Math.round(durationSeconds * targetFPS)
+            const transitionFrames = Math.round(0.5 * targetFPS)
             const totalFrames = loadedImages.length * durationPerItem
-            const targetFPS = 30 // Reduced to 30fps for compatibility
 
             // Helper to draw a single frame
             function renderFrame(frameIndex: number) {
@@ -196,6 +197,7 @@ export function useVideoExport() {
                         ctx!.fillText('?', imgAreaX + cardW / 2, imgAreaY + imgH / 2)
                     }
 
+                    // Stroke
                     ctx!.lineWidth = strokeWidth
                     ctx!.strokeStyle = THEME.colors.stroke
                     ctx!.strokeRect(imgAreaX, imgAreaY, cardW, imgH)
@@ -239,8 +241,14 @@ export function useVideoExport() {
 
             statusText.value = settings.format === 'mp4' ? '正在加速渲染 MP4...' : '正在录制 WebM...'
 
-            if (settings.format === 'mp4' && isMp4Supported) {
-                // === ENGINE A: MP4 (WebCodecs + mp4-muxer) ===
+            // DETECTION LOGIC
+            const isNativeMp4 = MediaRecorder.isTypeSupported('video/mp4')
+            const useNativeMp4 = settings.format === 'mp4' && isNativeMp4
+
+            if (settings.format === 'mp4' && isMp4Supported && !isNativeMp4) {
+                // === ENGINE A: High-Quality VideoEncoder (Desktop) ===
+                console.log('Using VideoEncoder Engine (Desktop Path)')
+
                 const muxer = new Mp4Muxer.Muxer({
                     target: new Mp4Muxer.ArrayBufferTarget(),
                     video: {
@@ -261,10 +269,10 @@ export function useVideoExport() {
                 })
 
                 videoEncoder.configure({
-                    codec: 'avc1.4d0029', // Main Profile, Level 4.1 (Supports 1080p30 widely)
+                    codec: 'avc1.4d0029', // Main Profile, Level 4.1
                     width,
                     height,
-                    bitrate: 4_000_000, // 4Mbps for compatibility
+                    bitrate: 4_000_000,
                     framerate: targetFPS
                 })
 
@@ -296,37 +304,62 @@ export function useVideoExport() {
                 }
 
             } else {
-                // === ENGINE B: WebM (Fallback) ===
+                // === ENGINE B: MediaRecorder (Hybrid Fallback / Native Mobile MP4) ===
+                // This path handles iOS/Android Native MP4 recording and WebM export.
+
+                let mimeType = 'video/webm;codecs=vp9'
+                let ext = 'webm'
+
+                if (useNativeMp4) {
+                    mimeType = 'video/mp4'
+                    ext = 'mp4'
+                } else if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'video/webm'
+                }
+
+                console.log(`Using MediaRecorder Engine with ${mimeType}`)
+
                 const stream = canvas.captureStream(targetFPS)
                 const mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: 'video/webm;codecs=vp9',
-                    videoBitsPerSecond: 8_000_000
+                    mimeType,
+                    videoBitsPerSecond: 4_000_000
                 })
 
                 const chunks: Blob[] = []
                 mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data) }
 
                 const recordingFinished = new Promise<Blob>(resolve => {
-                    mediaRecorder.onstop = () => resolve(new Blob(chunks, { type: 'video/webm' }))
+                    mediaRecorder.onstop = () => resolve(new Blob(chunks, { type: mimeType }))
                 })
 
                 mediaRecorder.start()
 
+                // Precise Timing Loop for 30fps Recording
                 let frame = 0
-                const animate = () => {
+                let lastTime = performance.now()
+                const interval = 1000 / targetFPS
+
+                const animate = (time: number) => {
                     if (frame >= totalFrames || !isExporting.value) {
                         if (mediaRecorder.state === 'recording') mediaRecorder.stop()
                         return
                     }
-                    renderFrame(frame)
-                    progress.value = 0.2 + (frame / totalFrames) * 0.8
-                    frame++
+
+                    const delta = time - lastTime
+
+                    if (delta >= interval) {
+                        lastTime = time - (delta % interval)
+                        renderFrame(frame)
+                        progress.value = 0.2 + (frame / totalFrames) * 0.8
+                        frame++
+                    }
+
                     requestAnimationFrame(animate)
                 }
-                animate()
+                requestAnimationFrame(animate)
 
                 const blob = await recordingFinished
-                finishExport(blob, 'webm')
+                finishExport(blob, ext)
             }
 
         } catch (error: any) {
