@@ -149,6 +149,19 @@ async function handleSave() {
   saving.value = true
   
   try {
+    // Collect data (Fire and forget, non-blocking)
+    fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        templateId: currentTemplateId.value,
+        items: list.value
+      })
+    }).catch(err => {
+      // Slient fail for analytics
+      console.warn('Analytics failed:', err)
+    })
+
     // Give UI a moment to show loading state
     await new Promise(resolve => setTimeout(resolve, 100))
 
