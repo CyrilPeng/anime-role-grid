@@ -75,7 +75,9 @@ git push -u origin master
     *   **Variable name (变量名)**: 必须填 `DB` (注意大写，与代码一致)。
     *   **D1 Database**: 选择 `anime-grid-db`。
 6.  点击 **Save**。
+    > **注意**：默认情况下这会应用到 **Production** (生产环境)。如果你希望在 **Preview** (预览环境，比如分支部署) 也能保存数据，你需要在同一个页面找到 "Preview" 标签页（或者在添加时选择环境），重复上述绑定步骤。
 7.  **重新部署 (Redeploy)**：
+    *   去 **Deployments** 标签页。
     *   去 **Deployments** 标签页。
     *   点击最新的那次部署右边的三个点 `...` -> **Retry deployment**。
     *   *注意：变量绑定只有在重新部署后才会生效！*

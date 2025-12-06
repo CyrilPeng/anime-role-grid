@@ -4,11 +4,13 @@ interface Env {
 
 interface SaveRequest {
     templateId: string;
+    customTitle?: string; // NEW
     items: Array<{
         label: string,
         imgUrl?: string,
         character?: {
-            name: string
+            name: string,
+            image?: string // From frontend type
         }
     }>;
 }
@@ -18,7 +20,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     try {
         const body = await request.json() as SaveRequest;
-        const { templateId, items } = body;
+        const { templateId, customTitle, items } = body;
 
         if (!templateId || !Array.isArray(items)) {
             return new Response(JSON.stringify({ error: 'Invalid payload' }), { status: 400 });
@@ -30,21 +32,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         // Prepare Batch Statements
         const statements = [];
 
-        // 1. Insert Main Record (Anonymous, No IP)
+        // 1. Insert Main Record
         statements.push(
             env.DB.prepare(
-                'INSERT INTO saves (id, template_id) VALUES (?, ?)'
-            ).bind(saveId, templateId)
+                'INSERT INTO saves (id, template_id, custom_title) VALUES (?, ?, ?)'
+            ).bind(saveId, templateId, customTitle || null)
         );
 
         // 2. Insert Items (Only those with characters)
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
             if (item.character && item.character.name) {
+                // Prefer explicit imgUrl, fallback to character.image if available
+                const imgUrl = item.imgUrl || item.character.image || null;
+
                 statements.push(
                     env.DB.prepare(
-                        'INSERT INTO save_items (save_id, slot_index, character_name) VALUES (?, ?, ?)'
-                    ).bind(saveId, i, item.character.name)
+                        'INSERT INTO save_items (save_id, slot_index, slot_label, character_name, img_url) VALUES (?, ?, ?, ?, ?)'
+                    ).bind(saveId, i, item.label, item.character.name, imgUrl)
                 );
             }
         }

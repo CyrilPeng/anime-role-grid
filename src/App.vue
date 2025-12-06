@@ -155,6 +155,7 @@ async function handleSave() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         templateId: currentTemplateId.value,
+        customTitle: name.value,
         items: list.value
       })
     }).catch(err => {
