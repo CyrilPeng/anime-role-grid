@@ -42,10 +42,10 @@ function getImageUrl(url: string) {
   >
     <!-- Custom User Title (Editable) -->
     <div class="relative group mb-2 w-full flex justify-center px-4">
-      <div class="relative inline-grid justify-items-center max-w-full">
+      <div class="relative inline-grid justify-items-center max-w-[90vw] md:max-w-full">
         <!-- Ghost element to set width -->
         <span 
-          class="col-start-1 row-start-1 text-3xl font-bold px-2 py-1 invisible whitespace-pre text-center"
+          class="col-start-1 row-start-1 text-xl md:text-3xl font-bold px-2 py-1 invisible whitespace-pre text-center truncate max-w-full"
           style="font-family: 'Noto Serif SC', serif;"
         >
           {{ customTitle || defaultTitle || '我的动漫人物喜好果然有问题' }}
@@ -54,7 +54,7 @@ function getImageUrl(url: string) {
         <!-- Actual Input -->
         <input
           :value="customTitle"
-          class="col-start-1 row-start-1 w-full h-full text-3xl font-bold text-center bg-transparent border-b-2 rounded-t-lg focus:outline-none transition-all px-2 py-1 text-black cursor-text placeholder-gray-300"
+          class="col-start-1 row-start-1 w-full h-full text-xl md:text-3xl font-bold text-center bg-transparent border-b-2 rounded-t-lg focus:outline-none transition-all px-2 py-1 text-black cursor-text placeholder-gray-300"
           :class="[
             !customTitle ? 'border-gray-100 dark:border-gray-800' : 'border-transparent',
             'hover:border-gray-300 hover:border-dashed',
