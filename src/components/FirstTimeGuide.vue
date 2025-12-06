@@ -112,7 +112,7 @@ const showChangelog = ref(true) // Default open for visibility
               <div class="grid grid-cols-2 gap-3">
                 
                 <!-- Main Group: Comprehensive -->
-                <a href="https://qm.qq.com/q/kHNDRQUhj4" target="_blank" class="group-btn group col-span-2 bg-gradient-to-r from-pink-50 to-white dark:from-gray-800 dark:to-gray-900">
+                <a href="https://qun.qq.com/universal-share/share?ac=1&authKey=axd5YDW0i5ZiyX8jTultFRVHCHv9FAsCnqHq40itBLuQEoUOdCo06bAh05W%2Bv1c7&busi_data=eyJncm91cENvZGUiOiIxMDU1NTkxMDY0IiwidG9rZW4iOiJMazMxZ1pPZHdQejMyS1BaSFZ2UkJIdHp5b29NbTI4VU9NaGhSSW96T0NpcS9ha0oyZzJEVmpPRXZ1Nit2eTVNIiwidWluIjoiMTkxNjY0NzYxNiJ9&data=Tsay2nkLgPoS1UGFPbFnpdAsQeLPgFErKFco7mYPmWPldhqQme_u6smVnM0ifq8X5nO5TiLUbxgl57S9deOLIw&svctype=4&tempid=h5_group_info" target="_blank" class="group-btn group col-span-2 bg-gradient-to-r from-pink-50 to-white dark:from-gray-800 dark:to-gray-900">
                     <div class="flex flex-col items-center justify-center w-full pt-1">
                       <div class="text-lg font-black tracking-wide leading-none mb-2">综合交流主群</div>
                       <div class="text-xs text-gray-500 font-medium text-center px-4 leading-relaxed line-clamp-2">
@@ -129,7 +129,7 @@ const showChangelog = ref(true) // Default open for visibility
                     <div class="flex flex-col items-center w-full">
                       <div class="text-base font-black tracking-wide leading-none mb-2">ACN 交流</div>
                       <div class="text-[10px] text-gray-400 font-medium text-center px-1 leading-normal h-8 flex items-center">
-                        专注动画、漫画、轻小说的深度交流，二次元浓度极高。
+                        专注动画、漫画、轻小说的分享交流，一起追番吧！
                       </div>
                     </div>
                     <div class="w-full py-1.5 bg-[#e4007f] text-white text-center rounded-lg text-xs font-bold shadow-sm group-hover:shadow-pink-500/30 transition-shadow mt-auto">
