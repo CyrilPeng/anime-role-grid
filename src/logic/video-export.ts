@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import type { GridItem } from '~/types'
 import * as Mp4Muxer from 'mp4-muxer'
+import { THEME } from '~/logic/constants/theme'
 
 interface VideoSettings {
     platform: string
@@ -9,13 +10,7 @@ interface VideoSettings {
     format: 'mp4' | 'webm'
 }
 
-const FONT_FAMILY = '"Noto Serif SC", serif'
-const COLORS = {
-    bg: '#ffffff',
-    text: '#000000',
-    accent: '#e4007f'
-}
-
+// Feature Detection
 export const isMp4Supported = typeof VideoEncoder !== 'undefined'
 
 export function useVideoExport() {
@@ -25,11 +20,20 @@ export function useVideoExport() {
     const statusText = ref('')
     const lastExportFormat = ref<'mp4' | 'webm' | null>(null)
 
+    // Pre-load image helper
     function loadImage(url: string): Promise<HTMLImageElement> {
         return new Promise((resolve) => {
             const img = new Image()
             img.crossOrigin = 'anonymous'
-            img.src = `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=png&n=-1`
+            img.referrerPolicy = 'no-referrer'
+
+            // Bypass proxy for local blob/data URLs
+            if (url.startsWith('blob:') || url.startsWith('data:')) {
+                img.src = url
+            } else {
+                img.src = `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=png&n=-1`
+            }
+
             img.onload = () => resolve(img)
             img.onerror = () => {
                 const placeholder = new Image()
@@ -47,6 +51,7 @@ export function useVideoExport() {
         lastExportFormat.value = null
 
         try {
+            // 1. Filter items
             const validIndices: number[] = []
             items.forEach((item, index) => {
                 if (settings.includeEmpty || (item.character && item.character.image)) {
@@ -56,18 +61,34 @@ export function useVideoExport() {
 
             if (validIndices.length === 0) throw new Error('没有可导出的内容')
 
+            // 2. Setup resolution
             let width = 1080
             let height = 1920
             if (settings.platform === 'bili') { width = 1920; height = 1080 }
             else if (settings.platform === 'square') { width = 1080; height = 1080 }
 
+            // GLOBAL SCALE FACTOR IMPLEMENTATION (Fit to Box)
+            const maxCardW = width * 0.8
+            const maxCardH = height * 0.8
+
+            const baseCardW = 1080 * 0.8
+            const baseCardH = baseCardW / THEME.layout.cellAspectRatio
+
+            const scaleW = maxCardW / baseCardW
+            const scaleH = maxCardH / baseCardH
+
+            const scale = Math.min(scaleW, scaleH)
+
+            // 3. Load Assets (Phase 1)
             statusText.value = '正在加载图片素材...'
             const loadedImages: (HTMLImageElement | null)[] = []
 
             for (let i = 0; i < validIndices.length; i++) {
                 const idx = validIndices[i]!
                 const item = items[idx]!
-                progress.value = (i / validIndices.length) * 0.2
+
+                progress.value = (i / validIndices.length) * 0.2 // 0-20%
+
                 if (item.character?.image) {
                     const img = await loadImage(item.character.image)
                     loadedImages.push(img)
@@ -76,29 +97,48 @@ export function useVideoExport() {
                 }
             }
 
+            // Canvas Setup
             const canvas = document.createElement('canvas')
             canvas.width = width
             canvas.height = height
             const ctx = canvas.getContext('2d')
             if (!ctx) throw new Error('Canvas not supported')
 
+            // Animation Parameters
             let durationPerItem = 180
             if (settings.speed === 'fast') durationPerItem = 90
             if (settings.speed === 'slow') durationPerItem = 300
 
-            const transitionFrames = 40
+            const transitionFrames = 30 // 30fps adjustment
             const totalFrames = loadedImages.length * durationPerItem
-            const targetFPS = 60
+            const targetFPS = 30 // Reduced to 30fps for compatibility
 
+            // Helper to draw a single frame
             function renderFrame(frameIndex: number) {
                 const currentIndex = Math.floor(frameIndex / durationPerItem)
                 const itemFrame = frameIndex % durationPerItem
 
+                // Background
                 const grad = ctx!.createLinearGradient(0, 0, 0, height)
                 grad.addColorStop(0, '#f9fafb')
                 grad.addColorStop(1, '#e5e7eb')
                 ctx!.fillStyle = grad
                 ctx!.fillRect(0, 0, width, height)
+
+                // Layout Calculations
+                const cardW = baseCardW * scale
+                const cardH = baseCardH * scale
+
+                const labelH = cardH * THEME.layout.labelHeightRatio
+                const imgH = cardH - labelH
+
+                // Design tokens scaled
+                const shadowOffsetY = 10 * scale
+                const shadowBlur = 20 * scale
+                const strokeWidth = 10 * scale
+                const titleFontSize = 80 * scale // ~width * 0.08
+                const labelFontSize = 80 * scale
+                const watermarkFontSize = 40 * scale
 
                 const drawCard = (x: number, y: number, itemIndex: number) => {
                     const originalIndex = validIndices[itemIndex]!
@@ -106,72 +146,80 @@ export function useVideoExport() {
                     const category = categories[originalIndex] || '格子'
                     const img = loadedImages[itemIndex]
 
-                    const cardW = width * 0.8
-                    const cardH = height * 0.8
                     const cardX = x + (width - cardW) / 2
                     const cardY = y + (height - cardH) / 2
 
+                    let cursorY = cardY
+
                     ctx!.save()
 
-                    ctx!.fillStyle = '#ffffff'
-                    ctx!.shadowColor = 'rgba(0,0,0,0.2)'
-                    ctx!.shadowBlur = 20
-                    ctx!.shadowOffsetY = 10
+                    // 1. Card Container
+                    ctx!.fillStyle = THEME.colors.cardBg
+                    ctx!.shadowColor = THEME.colors.cardShadow
+                    ctx!.shadowBlur = shadowBlur
+                    ctx!.shadowOffsetY = shadowOffsetY
                     ctx!.fillRect(cardX, cardY, cardW, cardH)
                     ctx!.shadowColor = 'transparent'
 
-                    ctx!.fillStyle = COLORS.accent
-                    ctx!.font = `bold ${width * 0.08}px ${FONT_FAMILY}`
+                    // 2. Category Title
+                    ctx!.fillStyle = THEME.colors.accent
+                    ctx!.font = `bold ${titleFontSize}px ${THEME.typography.fontFamily}`
                     ctx!.textAlign = 'center'
-                    ctx!.textBaseline = 'top'
-                    ctx!.fillText(category, x + width / 2, cardY + cardH * 0.05)
+                    ctx!.textBaseline = 'bottom'
+                    ctx!.fillText(category, x + width / 2, cardY - 20 * scale)
 
-                    const imgAreaW = cardW * 0.8
-                    const imgAreaH = cardH * 0.6
-                    const imgAreaX = cardX + (cardW - imgAreaW) / 2
-                    const imgAreaY = cardY + cardH * 0.15
+                    // 3. Image Area
+                    const imgAreaX = cardX
+                    const imgAreaY = cursorY
 
-                    ctx!.fillStyle = '#f3f4f6'
-                    ctx!.fillRect(imgAreaX, imgAreaY, imgAreaW, imgAreaH)
+                    ctx!.fillStyle = THEME.colors.secondaryBg
+                    ctx!.fillRect(imgAreaX, imgAreaY, cardW, imgH)
 
                     if (img) {
-                        const scale = Math.max(imgAreaW / img.width, imgAreaH / img.height)
-                        const w = img.width * scale
-                        const h = img.height * scale
-                        const dx = imgAreaX + (imgAreaW - w) / 2
-                        const dy = imgAreaY + (imgAreaH - h) / 2
+                        const scaleFactor = Math.max(cardW / img.width, imgH / img.height)
+                        const w = img.width * scaleFactor
+                        const h = img.height * scaleFactor
+                        const dx = imgAreaX + (cardW - w) / 2
+                        const dy = imgAreaY // Top align
 
                         ctx!.save()
                         ctx!.beginPath()
-                        ctx!.rect(imgAreaX, imgAreaY, imgAreaW, imgAreaH)
+                        ctx!.rect(imgAreaX, imgAreaY, cardW, imgH)
                         ctx!.clip()
                         ctx!.drawImage(img, dx, dy, w, h)
                         ctx!.restore()
                     } else {
-                        ctx!.fillStyle = '#d1d5db'
+                        ctx!.fillStyle = THEME.colors.placeholderText
                         ctx!.font = `bold ${width * 0.1}px sans-serif`
                         ctx!.textAlign = 'center'
                         ctx!.textBaseline = 'middle'
-                        ctx!.fillText('?', imgAreaX + imgAreaW / 2, imgAreaY + imgAreaH / 2)
+                        ctx!.fillText('?', imgAreaX + cardW / 2, imgAreaY + imgH / 2)
                     }
 
-                    ctx!.lineWidth = 10
-                    ctx!.strokeStyle = '#1f2937'
-                    ctx!.strokeRect(imgAreaX, imgAreaY, imgAreaW, imgAreaH)
+                    ctx!.lineWidth = strokeWidth
+                    ctx!.strokeStyle = THEME.colors.stroke
+                    ctx!.strokeRect(imgAreaX, imgAreaY, cardW, imgH)
 
-                    const nameY = imgAreaY + imgAreaH + cardH * 0.05
-                    ctx!.fillStyle = '#111827'
-                    ctx!.font = `bold ${width * 0.08}px ${FONT_FAMILY}`
+                    cursorY += imgH
+
+                    // 4. Label Area
+                    const labelCenterY = cursorY + labelH / 2
+
+                    ctx!.fillStyle = THEME.colors.text
+                    ctx!.font = `bold ${labelFontSize}px ${THEME.typography.fontFamily}`
+                    ctx!.textBaseline = 'middle'
+                    ctx!.fillText(item.character?.name || '未填写', x + width / 2, labelCenterY)
+
+                    // 5. Branding Watermark
+                    ctx!.fillStyle = THEME.colors.brandingText
+                    ctx!.font = `bold ${watermarkFontSize}px ${THEME.typography.fontFamily}`
                     ctx!.textBaseline = 'top'
-                    ctx!.fillText(item.character?.name || '未填写', x + width / 2, nameY)
-
-                    ctx!.fillStyle = 'rgba(0,0,0,0.3)'
-                    ctx!.font = `bold ${width * 0.04}px ${FONT_FAMILY}`
-                    ctx!.fillText('【我推的格子】', x + width / 2, cardY + cardH - cardH * 0.05)
+                    ctx!.fillText('【我推的格子】', x + width / 2, cardY + cardH + 20 * scale)
 
                     ctx!.restore()
                 }
 
+                // Animation Logic
                 const slideStart = durationPerItem - transitionFrames
 
                 if (itemFrame < slideStart || currentIndex === loadedImages.length - 1) {
@@ -192,11 +240,11 @@ export function useVideoExport() {
             statusText.value = settings.format === 'mp4' ? '正在加速渲染 MP4...' : '正在录制 WebM...'
 
             if (settings.format === 'mp4' && isMp4Supported) {
-                // === ENGINE A: MP4 (WebCodecs) ===
+                // === ENGINE A: MP4 (WebCodecs + mp4-muxer) ===
                 const muxer = new Mp4Muxer.Muxer({
                     target: new Mp4Muxer.ArrayBufferTarget(),
                     video: {
-                        codec: 'avc', // H.264
+                        codec: 'avc',
                         width,
                         height
                     },
@@ -213,10 +261,10 @@ export function useVideoExport() {
                 })
 
                 videoEncoder.configure({
-                    codec: 'avc1.4d002a', // Main Profile, Level 4.2 (1080p60)
+                    codec: 'avc1.4d0029', // Main Profile, Level 4.1 (Supports 1080p30 widely)
                     width,
                     height,
-                    bitrate: 8_000_000,
+                    bitrate: 4_000_000, // 4Mbps for compatibility
                     framerate: targetFPS
                 })
 
@@ -252,7 +300,7 @@ export function useVideoExport() {
                 const stream = canvas.captureStream(targetFPS)
                 const mediaRecorder = new MediaRecorder(stream, {
                     mimeType: 'video/webm;codecs=vp9',
-                    videoBitsPerSecond: 8000000
+                    videoBitsPerSecond: 8_000_000
                 })
 
                 const chunks: Blob[] = []
@@ -284,7 +332,6 @@ export function useVideoExport() {
         } catch (error: any) {
             console.error(error)
             alert('导出失败: ' + (error.message || '未知错误'))
-        } finally {
             isExporting.value = false
         }
     }
@@ -303,6 +350,7 @@ export function useVideoExport() {
         if (ext === 'mp4') {
             setTimeout(() => { isModalOpen.value = false }, 1000)
         }
+        isExporting.value = false
     }
 
     return {
