@@ -23,5 +23,10 @@ export const THEME = {
         // Label Height Ratio (relative to total cell height)
         // Derived from: 25 / 187
         labelHeightRatio: 25 / 187,
+    },
+    watermark: {
+        letterSpacing: 0.1, // Matches 'tracking-widest' (0.1em)
+        verticalPadding: 60, // Base pixels relative to 1080p canvas scale
+        fontSize: 40 // Base pixels relative to 1080p canvas scale
     }
 }

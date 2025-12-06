@@ -139,7 +139,7 @@ export function useVideoExport() {
                 const strokeWidth = 10 * scale
                 const titleFontSize = 80 * scale // ~width * 0.08
                 const labelFontSize = 80 * scale
-                const watermarkFontSize = 40 * scale
+
 
                 const drawCard = (x: number, y: number, itemIndex: number) => {
                     const originalIndex = validIndices[itemIndex]!
@@ -208,15 +208,61 @@ export function useVideoExport() {
                     const labelCenterY = cursorY + labelH / 2
 
                     ctx!.fillStyle = THEME.colors.text
-                    ctx!.font = `bold ${labelFontSize}px ${THEME.typography.fontFamily}`
-                    ctx!.textBaseline = 'middle'
-                    ctx!.fillText(item.character?.name || '未填写', x + width / 2, labelCenterY)
+                    let fontSize = labelFontSize
+                    ctx!.font = `bold ${fontSize}px ${THEME.typography.fontFamily}`
 
-                    // 5. Branding Watermark
-                    ctx!.fillStyle = THEME.colors.brandingText
-                    ctx!.font = `bold ${watermarkFontSize}px ${THEME.typography.fontFamily}`
+                    // Auto-scale text to fit
+                    const maxTextW = cardW * 0.9
+                    const nameText = item.character?.name || '未填写'
+
+                    while (ctx!.measureText(nameText).width > maxTextW && fontSize > 10) {
+                        fontSize -= 2 * scale // Reduce by 2 scaled pixels
+                        ctx!.font = `bold ${fontSize}px ${THEME.typography.fontFamily}`
+                    }
+
+                    ctx!.textBaseline = 'middle'
+                    ctx!.fillText(nameText, x + width / 2, labelCenterY)
+
+                    // 5. Branding Watermark (Pink + Black)
+                    // Visual Breathing Room
+                    const wmFontSize = THEME.watermark.fontSize * scale
+                    const wmY = cardY + cardH + THEME.watermark.verticalPadding * scale
+                    const wmX = x + width / 2
+
+                    ctx!.font = `bold ${wmFontSize}px ${THEME.typography.fontFamily}`
                     ctx!.textBaseline = 'top'
-                    ctx!.fillText('【我推的格子】', x + width / 2, cardY + cardH + 20 * scale)
+
+                    // Manual Letter Spacing (Tracking) Calculation
+                    // tracking = 0.25em (tracking-widest)
+                    const tracking = wmFontSize * THEME.watermark.letterSpacing
+
+                    const text1 = "【我推"
+                    const text2 = "的"
+                    const text3 = "格子】"
+
+                    const w1 = ctx!.measureText(text1).width
+                    const w2 = ctx!.measureText(text2).width
+                    const w3 = ctx!.measureText(text3).width
+
+                    // Total width includes the tracking spaces between segments
+                    const totalWmW = w1 + w2 + w3 + (tracking * 2)
+
+                    let currentWmX = wmX - totalWmW / 2
+
+                    // Segment 1: Black
+                    ctx!.fillStyle = '#000000'
+                    ctx!.textAlign = 'left'
+                    ctx!.fillText(text1, currentWmX, wmY)
+                    currentWmX += w1 + tracking
+
+                    // Segment 2: Pink
+                    ctx!.fillStyle = THEME.colors.accent
+                    ctx!.fillText(text2, currentWmX, wmY)
+                    currentWmX += w2 + tracking
+
+                    // Segment 3: Black
+                    ctx!.fillStyle = '#000000'
+                    ctx!.fillText(text3, currentWmX, wmY)
 
                     ctx!.restore()
                 }
@@ -369,6 +415,8 @@ export function useVideoExport() {
         }
     }
 
+    const isSuccessModalOpen = ref(false)
+
     function finishExport(blob: Blob, ext: string) {
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
@@ -380,14 +428,15 @@ export function useVideoExport() {
         statusText.value = '导出成功！'
         lastExportFormat.value = ext as any
 
-        if (ext === 'mp4') {
-            setTimeout(() => { isModalOpen.value = false }, 1000)
-        }
+        // Close settings setup, open success confirm
+        isModalOpen.value = false
+        isSuccessModalOpen.value = true
         isExporting.value = false
     }
 
     return {
         isModalOpen,
+        isSuccessModalOpen,
         isExporting,
         progress,
         statusText,

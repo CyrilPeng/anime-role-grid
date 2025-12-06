@@ -25,9 +25,9 @@ if (!isMp4Supported) {
 }
 
 const platformOptions = [
-  { value: 'tiktok', label: '抖音 / TikTok (9:16)', icon: 'i-carbon-logo-tiktok' },
+  { value: 'tiktok', label: '抖音 / TikTok (9:16)', icon: 'i-carbon-music' },
   { value: 'bili', label: 'B站 / 横屏 (16:9)', icon: 'i-carbon-play-filled' },
-  { value: 'square', label: '正方形 (1:1)', icon: 'i-carbon-instagram' },
+  { value: 'square', label: '正方形 (1:1)', icon: 'i-carbon-image' },
 ]
 
 const speedOptions = [
@@ -46,8 +46,8 @@ function start() {
   emit('start-export', settings.value)
 }
 
-const showFormatGuide = computed(() => {
-    return !props.loading && props.lastExportFormat === 'webm'
+const showSuccessTips = computed(() => {
+    return !props.loading && !!props.lastExportFormat
 })
 </script>
 
@@ -58,7 +58,7 @@ const showFormatGuide = computed(() => {
       <!-- Header -->
       <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
         <h3 class="text-xl font-bold text-gray-900" style="font-family: 'Noto Serif SC', serif;">
-            {{ showFormatGuide ? '导出完成' : '导出视频' }}
+            {{ showSuccessTips ? '导出完成' : '导出视频' }}
         </h3>
         <button 
           v-if="!loading"
@@ -69,33 +69,7 @@ const showFormatGuide = computed(() => {
         </button>
       </div>
 
-      <!-- Compatibility Guide (Post-Export WebM) -->
-      <div v-if="showFormatGuide" class="p-6 bg-yellow-50 border-b border-yellow-100 animate-fade-in-down">
-        <div class="flex items-start gap-3">
-            <div class="i-carbon-warning-filled text-yellow-500 text-2xl shrink-0 mt-0.5" />
-            <div class="flex flex-col gap-2">
-                <h4 class="font-bold text-gray-900 text-base">⚠️ 视频无法保存到相册？</h4>
-                <p class="text-sm text-gray-700 leading-relaxed">
-                    您导出的 <b>WebM 格式</b> 在 iOS 相册或抖音中可能无法直接识别。推荐使用以下方案转换：
-                </p>
-                <div class="mt-2 flex flex-col gap-1.5 text-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-bold">电脑端</span>
-                        <a href="https://cloudconvert.com/webm-to-mp4" target="_blank" class="text-blue-600 hover:underline">
-                            CloudConvert 在线转 MP4 &rarr;
-                        </a>
-                    </div>
-                    <div class="flex items-center gap-2">
-                         <span class="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-bold">手机端</span>
-                         <span class="text-gray-600">保存到【文件】，用 <b>剪映</b> 导入即可</span>
-                    </div>
-                </div>
-                <button @click="close" class="mt-3 text-sm font-bold text-gray-500 hover:text-gray-900 text-left">
-                    知道了，关闭窗口
-                </button>
-            </div>
-        </div>
-      </div>
+
 
       <!-- Body -->
       <div class="p-6 flex flex-col gap-6 overflow-y-auto">
