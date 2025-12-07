@@ -92,7 +92,7 @@ export class CanvasGenerator {
         this.ctx.fillStyle = THEME.colors.bg
         this.ctx.fillRect(0, 0, canvasWidth, canvasHeight)
 
-        this.drawTitle(customTitle, template.name, canvasWidth, titleHeight)
+        this.drawTitle(customTitle, template.defaultTitle, template.name, canvasWidth, titleHeight)
 
         const images = await Promise.all(
             list.map(item => item.character ? this.loadImage(this.getImageUrl(item.character.image)) : Promise.resolve(null))
@@ -144,14 +144,16 @@ export class CanvasGenerator {
         return this.canvas.toDataURL('image/png')
     }
 
-    private drawTitle(customTitle: string, templateName: string, width: number, height: number) {
+    private drawTitle(customTitle: string, defaultTitle: string | undefined, templateName: string, width: number, height: number) {
         const centerX = width / 2
 
         this.ctx.fillStyle = THEME.colors.text
         this.ctx.font = `bold ${60}px ${THEME.typography.fontFamily}`
         this.ctx.textAlign = 'center'
         this.ctx.textBaseline = 'middle'
-        this.ctx.fillText(customTitle || '我的动漫人物喜好果然有问题', centerX, height / 2 - 20)
+        // Prioritize Custom > Default > Generic Fallback
+        const titleText = customTitle || defaultTitle || '我的二次元成分表'
+        this.ctx.fillText(titleText, centerX, height / 2 - 20)
 
         this.ctx.fillStyle = THEME.colors.accent
         this.ctx.font = `bold ${32}px ${THEME.typography.fontFamily}`
