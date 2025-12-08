@@ -57,7 +57,7 @@ const changelogs = ref([
     >
       <!-- Outer Container -->
       <div 
-        class="bg-white dark:bg-gray-900 w-full max-w-md max-h-[90vh] rounded-2xl shadow-2xl border-4 border-black dark:border-gray-700 relative flex flex-col overflow-hidden" 
+        class="bg-white dark:bg-gray-900 w-full max-w-md max-h-[90vh] rounded-2xl shadow-2xl border-4 border-black dark:border-gray-700 relative flex flex-col overflow-hidden min-h-0" 
         @click.stop
       >
         <!-- Close Button -->

@@ -23,11 +23,11 @@ const emit = defineEmits(['close'])
       @click="emit('close')"
     >
       <div 
-        class="bg-white dark:bg-gray-900 w-full max-w-sm rounded-2xl shadow-2xl relative overflow-hidden" 
+        class="bg-white dark:bg-gray-900 w-full max-w-sm rounded-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]" 
         @click.stop
       >
         <!-- Header -->
-        <div class="bg-gradient-to-r from-pink-50 to-white dark:from-pink-900/20 dark:to-gray-800 p-4 border-b border-pink-100 dark:border-pink-800/30 flex items-center justify-between">
+        <div class="bg-gradient-to-r from-pink-50 to-white dark:from-pink-900/20 dark:to-gray-800 p-4 border-b border-pink-100 dark:border-pink-800/30 flex items-center justify-between shrink-0">
            <h3 class="font-bold text-lg flex items-center gap-2 text-gray-900 dark:text-white">
               <div class="i-carbon-group text-[#e4007f]" />
               <span>加入组织</span>
@@ -40,11 +40,11 @@ const emit = defineEmits(['close'])
            </button>
         </div>
 
-        <div class="p-4">
+        <div class="p-4 overflow-y-auto flex-1 min-h-0">
            <CommunityGroupLinks class="!border-0 !shadow-none !p-0 !bg-transparent" />
         </div>
         
-        <div class="p-4 pt-0 text-center">
+        <div class="p-4 pt-0 text-center shrink-0">
             <p class="text-xs text-gray-400">请文明交流，遵守群规哦~</p>
         </div>
       </div>

@@ -53,7 +53,7 @@ function handleMore() {
       class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
     >
       <div 
-        class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col items-center p-8 relative"
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col items-center p-8 pb-4 relative max-h-[85vh]"
         @click.stop
       >
         <!-- Close Button -->
@@ -72,11 +72,11 @@ function handleMore() {
         </div>
 
         <!-- Options -->
-        <div class="w-full flex flex-col gap-3 mb-6">
+        <div class="w-full flex-1 flex flex-col gap-3 mb-6 overflow-y-auto min-h-0 pr-1">
           <button
             v-for="opt in TRENDING_OPTIONS"
             :key="opt.id"
-            class="w-full flex items-center p-4 rounded-xl border-2 transition-all group text-left relative overflow-hidden bg-white hover:bg-pink-50 border-gray-100 hover:border-[#e4007f] text-gray-700 hover:text-[#e4007f]"
+            class="w-full flex items-center p-4 rounded-xl border-2 transition-all group text-left relative overflow-hidden bg-white hover:bg-pink-50 border-gray-100 hover:border-[#e4007f] text-gray-700 hover:text-[#e4007f] shrink-0"
             @click="handleSelect(opt)"
           >
             <div 

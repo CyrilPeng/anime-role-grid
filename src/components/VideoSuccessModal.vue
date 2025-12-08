@@ -18,7 +18,7 @@ const emit = defineEmits(['close', 'open-join-group'])
     leave-to-class="opacity-0 scale-95"
   >
     <div v-if="show" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" @click="emit('close')">
-      <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col animate-bounce-in" @click.stop>
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col animate-bounce-in max-h-[90vh] overflow-y-auto" @click.stop>
         
         <!-- Header -->
         <div class="p-6 bg-pink-50 border-b border-pink-100 flex items-center gap-4">
