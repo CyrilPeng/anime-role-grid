@@ -144,7 +144,8 @@ export function useVideoExport() {
                 const drawCard = (x: number, y: number, itemIndex: number) => {
                     const originalIndex = validIndices[itemIndex]!
                     const item = items[originalIndex]!
-                    const category = categories[originalIndex] || '格子'
+                    // Fix: Use item.label (custom) if available, fallback to category default
+                    const category = item.label || categories[originalIndex] || '格子'
                     const img = loadedImages[itemIndex]
 
                     const cardX = x + (width - cardW) / 2

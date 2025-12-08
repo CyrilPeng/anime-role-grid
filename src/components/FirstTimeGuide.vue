@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+
 defineProps<{
   show: boolean
 }>()
@@ -8,9 +9,19 @@ defineProps<{
 const emit = defineEmits(['close'])
 
 const changelogs = ref([
+ {
+    date: '2025.12.08',
+    isOpen: true,
+    items: [
+      { tag: 'NEW', type: 'new', content: '<b>标签自由修改</b>：点击格子上的标签文字，即可自定义修改！' },
+      { tag: 'NEW', type: 'new', content: '<b>人物/音乐搜索</b>：搜索全面升级，支持搜声优、歌手' },
+      { tag: 'UP', type: 'up', content: '<b>20+ 新模版</b>：声优梗图、特摄、我的歌单、痛包展示... 等你来玩！' },
+      { tag: 'FX', type: 'opt', content: '<b>视频导出修复</b>：现在视频也会正确显示你修改后的标签啦。' }
+    ]
+  },
   {
     date: '2025.12.07',
-    isOpen: true,
+    isOpen: false,
     items: [
       { tag: 'NEW', type: 'new', content: '<b>全新搜索升级</b>：动漫、漫画、游戏、小说... ACG全领域一网打尽！' },
       { tag: 'NEW', type: 'new', content: '<b>2025年度模版</b>：新增年度动画/游戏专属盘点，记录你的2025。' },
@@ -46,71 +57,104 @@ const changelogs = ref([
     >
       <!-- Outer Container -->
       <div 
-        class="bg-white dark:bg-gray-900 w-full max-w-md max-h-[85vh] rounded-2xl shadow-2xl border-4 border-black dark:border-gray-700 relative flex flex-col overflow-hidden" 
+        class="bg-white dark:bg-gray-900 w-full max-w-md max-h-[90vh] rounded-2xl shadow-2xl border-4 border-black dark:border-gray-700 relative flex flex-col overflow-hidden" 
         @click.stop
       >
         <!-- Close Button -->
         <button 
-          class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-black text-white rounded-full hover:bg-[#e4007f] transition-colors z-20"
+          class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-black text-white rounded-full hover:bg-[#e4007f] transition-colors z-20"
           @click="emit('close')"
         >
           <div class="i-carbon-close text-xl" />
         </button>
 
         <!-- Scrollable Content -->
-        <div class="overflow-y-auto flex-1 p-6 flex flex-col gap-6 scrollbar-hide">
+        <div class="overflow-y-auto flex-1 p-5 flex flex-col gap-4 scrollbar-hide">
           
-          <!-- Welcome Image -->
-          <div class="w-full flex items-center justify-center shrink-0 pt-2">
-             <img 
-               src="/cana4.webp" 
-               class="h-20 object-contain"
-               alt="Welcome"
-             />
-          </div>
-
-          <!-- Title -->
-          <div class="text-center shrink-0">
-            <h2 class="text-xl font-bold text-[#000000] dark:text-white mb-1">
-              欢迎来到
-            </h2>
-            <h1 class="text-3xl font-black mb-2 text-[#000000] dark:text-white tracking-widest" style="font-family: 'Noto Serif SC', serif;">
+          <!-- Compact Header -->
+          <div class="text-center shrink-0 mt-2">
+            <h1 class="text-2xl font-black text-[#000000] dark:text-white tracking-widest" style="font-family: 'Noto Serif SC', serif;">
               【我推<span class="text-[#e4007f]">的</span>格子】
             </h1>
           </div>
 
           <!-- Content Sections -->
-          <div class="space-y-5 text-sm text-gray-700 dark:text-gray-300 font-medium">
+          <div class="space-y-4 text-sm text-gray-700 dark:text-gray-300 font-medium">
 
-            <!-- Changelog (Collapsible List) -->
-            <div class="space-y-3">
+            <!-- Main Group Card (Exclusive for Guide) -->
+            <a href="https://qun.qq.com/universal-share/share?ac=1&authKey=axd5YDW0i5ZiyX8jTultFRVHCHv9FAsCnqHq40itBLuQEoUOdCo06bAh05W%2Bv1c7&busi_data=eyJncm91cENvZGUiOiIxMDU1NTkxMDY0IiwidG9rZW4iOiJMazMxZ1pPZHdQejMyS1BaSFZ2UkJIdHp5b29NbTI4VU9NaGhSSW96T0NpcS9ha0oyZzJEVmpPRXZ1Nit2eTVNIiwidWluIjoiMTkxNjY0NzYxNiJ9&data=Tsay2nkLgPoS1UGFPbFnpdAsQeLPgFErKFco7mYPmWPldhqQme_u6smVnM0ifq8X5nO5TiLUbxgl57S9deOLIw&svctype=4&tempid=h5_group_info" 
+               target="_blank" 
+               class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink-50 to-white dark:from-pink-900/20 dark:to-gray-800 border-2 border-pink-100 hover:border-[#e4007f] transition-all duration-300 shadow-sm hover:shadow-md p-4 flex items-center gap-4"
+            >
+                <div class="bg-white dark:bg-pink-900/30 p-3 rounded-full text-[#e4007f] shadow-sm border border-pink-50 dark:border-pink-800/30 group-hover:scale-110 transition-transform duration-300">
+                    <div class="i-carbon-chat text-2xl" />
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-0.5">
+                     <span class="font-black text-base text-gray-900 dark:text-gray-100">加入综合交流大群</span>
+                     <span class="text-[10px] bg-[#e4007f] text-white px-1.5 py-0.5 rounded text-xs font-bold">推荐</span>
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">分享作品 / 寻找同好 / 反馈建议</div>
+                </div>
+                <div class="i-carbon-arrow-right text-xl text-gray-300 group-hover:text-[#e4007f] group-hover:translate-x-1 transition-all" />
+            </a>
+
+            <!-- Action Buttons Row -->
+            <div class="flex items-center gap-3 pt-2">
+                <!-- GitHub Star -->
+                <a 
+                  href="https://github.com/ywh555hhh/anime-role-grid"
+                  target="_blank"
+                  class="flex-1 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <div class="i-carbon-logo-github text-lg" />
+                  <span>Star</span>
+                </a>
+
+                <!-- Start Making -->
+                <button 
+                  class="flex-[2] py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2"
+                  @click="emit('close')"
+                >
+                  <div class="i-carbon-play-filled text-lg" />
+                  <span>开始制作</span>
+                </button>
+            </div>
+
+            <!-- Changelog (Moved to Bottom) -->
+            <div class="space-y-2 pt-2 border-t border-dashed border-gray-200 dark:border-gray-700 mt-2">
+               <div class="text-[10px] text-center text-gray-400 font-medium mb-1 flex items-center justify-center gap-1 animate-pulse">
+                   <div class="i-carbon-arrow-down" />
+                   <span>查看最近更新</span>
+                   <div class="i-carbon-arrow-down" />
+               </div>
+
               <div 
                 v-for="(log, idx) in changelogs" 
                 :key="log.date"
-                class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
+                class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
               >
                   <button 
                     @click="log.isOpen = !log.isOpen"
-                    class="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    class="w-full flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   >
-                    <div class="flex items-center gap-2 font-bold text-gray-900 dark:text-white">
-                      <!-- Highlight latest icon -->
+                    <div class="flex items-center gap-2 font-bold text-gray-900 dark:text-white text-xs">
                       <div :class="idx === 0 ? 'text-[#e4007f]' : 'text-gray-400'" class="i-carbon-bullhorn" />
-                      <span>更新日志 ({{ log.date }})</span>
+                      <span>{{ log.date }}</span>
                     </div>
                     <div 
-                      class="i-carbon-chevron-down text-gray-400 transition-transform duration-200"
+                      class="i-carbon-chevron-down text-gray-400 transition-transform duration-200 text-xs"
                       :class="{ '-rotate-180': log.isOpen }"
                     />
                   </button>
                   
                   <div 
                       v-show="log.isOpen"
-                      class="p-4 bg-white dark:bg-gray-900/50 text-xs space-y-3 border-t border-gray-100 dark:border-gray-800"
+                      class="p-3 bg-white dark:bg-gray-900/50 text-[10px] space-y-2 border-t border-gray-100 dark:border-gray-800"
                   >
-                      <div v-for="(item, i) in log.items" :key="i" class="flex gap-2 items-start">
+                      <div v-for="(item, i) in log.items" :key="i" class="flex gap-1.5 items-start leading-relaxed">
                           <span 
-                            class="font-bold shrink-0 w-11 text-center"
+                            class="font-bold shrink-0"
                             :class="{
                               'text-[#e4007f]': item.type === 'new',
                               'text-pink-600': item.type === 'up',
@@ -122,116 +166,8 @@ const changelogs = ref([
                   </div>
               </div>
             </div>
-
-            <!-- Community Groups -->
-            <div class="bg-pink-50/50 dark:bg-pink-900/10 border border-pink-100 dark:border-pink-800/30 p-4 rounded-2xl">
-              <div class="flex gap-2 items-center mb-2 text-[#e4007f] font-bold">
-                <div class="i-carbon-group text-lg" />
-                <h3>加入组织</h3>
-              </div>
-              
-              <p class="text-xs text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                这是<b>刚刚创立</b>的 QQ 组织，主打 <b>分享格子</b> 与 <b>寻找同好</b>。<br>
-                群内氛围和谐，点击下方按钮<b>一键加入</b>！
-              </p>
-
-              <div class="grid grid-cols-2 gap-3">
-                
-                <!-- Main Group: Comprehensive -->
-                <a href="https://qun.qq.com/universal-share/share?ac=1&authKey=axd5YDW0i5ZiyX8jTultFRVHCHv9FAsCnqHq40itBLuQEoUOdCo06bAh05W%2Bv1c7&busi_data=eyJncm91cENvZGUiOiIxMDU1NTkxMDY0IiwidG9rZW4iOiJMazMxZ1pPZHdQejMyS1BaSFZ2UkJIdHp5b29NbTI4VU9NaGhSSW96T0NpcS9ha0oyZzJEVmpPRXZ1Nit2eTVNIiwidWluIjoiMTkxNjY0NzYxNiJ9&data=Tsay2nkLgPoS1UGFPbFnpdAsQeLPgFErKFco7mYPmWPldhqQme_u6smVnM0ifq8X5nO5TiLUbxgl57S9deOLIw&svctype=4&tempid=h5_group_info" target="_blank" class="group-btn group col-span-2 bg-gradient-to-r from-pink-50 to-white dark:from-gray-800 dark:to-gray-900">
-                    <div class="flex flex-col items-center justify-center w-full pt-1">
-                      <div class="text-lg font-black tracking-wide leading-none mb-2">综合交流主群</div>
-                      <div class="text-xs text-gray-500 font-medium text-center px-4 leading-relaxed line-clamp-2">
-                        官方综合大群，发布最新公告，反馈 Bug，与开发者直接交流，也是最热闹的闲聊中心。
-                      </div>
-                    </div>
-                    <div class="w-full py-2 bg-[#e4007f] text-white text-center rounded-lg text-sm font-bold shadow-sm group-hover:shadow-pink-500/30 transition-shadow mt-3">
-                        点击加入主群
-                    </div>
-                </a>
-
-                <!-- Q Group: ACN -->
-                <a href="https://qun.qq.com/universal-share/share?ac=1&authKey=1LsjjxDEHjGWTDq3%2FRSfv4Qcb3ESkVgBC3mQmdOPhuFBeEfIbQnuHFGI%2BEA4QLIE&busi_data=eyJncm91cENvZGUiOiIxMDE4MjEzNjUzIiwidG9rZW4iOiJ1aUhXOHFjdlQwSGJlZjNCN0NWS0laRzI3MEY1MHhvczZiRW9EOU1xSGRxaTRJS21aSkRXWFhKTmMrWS9mM2JCIiwidWluIjoiMTkxNjY0NzYxNiJ9&data=ODTRpLsOGRek2N-cVzqTSr2rKDj1y3nmdtdgRnP_iZE7WKUGq9fr2LJHiSf9LLX4YNX78Rpq_mpvT8ROyfoC8g&svctype=4&tempid=h5_group_info" target="_blank" class="group-btn group">
-                    <div class="flex flex-col items-center w-full">
-                      <div class="text-base font-black tracking-wide leading-none mb-2">ACN 交流</div>
-                      <div class="text-[10px] text-gray-400 font-medium text-center px-1 leading-normal h-8 flex items-center">
-                        专注动画、漫画、轻小说的分享交流，一起追番吧！
-                      </div>
-                    </div>
-                    <div class="w-full py-1.5 bg-[#e4007f] text-white text-center rounded-lg text-xs font-bold shadow-sm group-hover:shadow-pink-500/30 transition-shadow mt-auto">
-                        点击加入
-                    </div>
-                </a>
-
-                <!-- W Group: Mobile/Anime Games -->
-                <a href="https://qun.qq.com/universal-share/share?ac=1&authKey=N%2Bfruq0iPx8IhUvbksaoNR2vPtCr7tTmrRRPfmGvuYlExWoy2LZsGfaL183PzNXO&busi_data=eyJncm91cENvZGUiOiI4NTkzNjEwOTkiLCJ0b2tlbiI6Ii9DQy9KZ0l4bzNObWFrOXJwbEV0Q3cxRmVNNmtOOGpDZFNLOCt1bHNxb05WL29zQVo1UlE4czVTWDM4dU8vZUsiLCJ1aW4iOiIxOTE2NjQ3NjE2In0%3D&data=caBB9HR43RsqoEKBASBC1plB48DZi3RsJLnQ7dgEYPj8fmVGnVqGWLn7YbYe_oZcAHod8KqRzsdl5hXVUQ9OaQ&svctype=4&tempid=h5_group_info" target="_blank" class="group-btn group">
-                    <div class="flex flex-col items-center w-full">
-                      <div class="text-base font-black tracking-wide leading-none mb-2">二游</div>
-                      <div class="text-[10px] text-gray-400 font-medium text-center px-1 leading-normal h-8 flex items-center">
-                        手游玩家聚集地，讨论抽卡运气、剧情攻略与最新资讯。
-                      </div>
-                    </div>
-                    <div class="w-full py-1.5 bg-[#e4007f] text-white text-center rounded-lg text-xs font-bold shadow-sm group-hover:shadow-pink-500/30 transition-shadow mt-auto">
-                        点击加入
-                    </div>
-                </a>
-
-                <!-- E Group: Galgame -->
-                <a href="https://qun.qq.com/universal-share/share?ac=1&authKey=KgGU8v2up7Umiwm97tlf6w9sQtNEHYrre4N%2BMKTxBsGS8b0mjwfgCm32QT3wafRj&busi_data=eyJncm91cENvZGUiOiIxNzYxODYwMTkiLCJ0b2tlbiI6InFTd2dSWmNyWXgvaHJvaHl3akd2bCtpdFRyOUd1QVdsM2t6MXNuczdpRjkyUHdyYzY4bngwbnVWV1MwYkI3WjYiLCJ1aW4iOiIzNjYzNTU4MDg3In0%3D&data=q2YUZm5dBCs7tzjCofgNzBxV77kTJNI5nHbeQ8b7zp8M3AeiUa2dqAyois_Pg4RFdwC-SJF4XpuYpAy9twSURg&svctype=4&tempid=h5_group_info" target="_blank" class="group-btn group">
-                    <div class="flex flex-col items-center w-full">
-                      <div class="text-base font-black tracking-wide leading-none mb-2">Galgame</div>
-                      <div class="text-[10px] text-gray-400 font-medium text-center px-1 leading-normal h-8 flex items-center">
-                        美少女游戏专门讨论区，推神作、聊剧情、分享汉化资源。
-                      </div>
-                    </div>
-                    <div class="w-full py-1.5 bg-[#e4007f] text-white text-center rounded-lg text-xs font-bold shadow-sm group-hover:shadow-pink-500/30 transition-shadow mt-auto">
-                        点击加入
-                    </div>
-                </a>
-
-                <!-- R Group: Water -->
-                <a href="https://qm.qq.com/q/kHNDRQUhj4" target="_blank" class="group-btn group">
-                    <div class="flex flex-col items-center w-full">
-                      <div class="text-base font-black tracking-wide leading-none mb-2">神人大水群</div>
-                      <div class="text-[10px] text-gray-400 font-medium text-center px-1 leading-normal h-8 flex items-center">
-                        闲聊吹水、分享日常、发癫卖萌，什么都可以聊的综合群。
-                      </div>
-                    </div>
-                    <div class="w-full py-1.5 bg-[#e4007f] text-white text-center rounded-lg text-xs font-bold shadow-sm group-hover:shadow-pink-500/30 transition-shadow mt-auto">
-                        点击加入
-                    </div>
-                </a>
-              </div>
-            </div>
-
-            <!-- Star Project -->
-            <a 
-              href="https://github.com/ywh555hhh/anime-role-grid"
-              target="_blank"
-              class="w-full py-2.5 bg-[#24292e] dark:bg-gray-100 text-white dark:text-gray-900 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-sm"
-            >
-              <div class="i-carbon-logo-github text-lg" />
-              <div class="flex flex-col items-start leading-none">
-                <span class="font-bold text-xs">GitHub Star</span>
-                <span class="text-[10px] opacity-80 font-normal">支持开源项目</span>
-              </div>
-            </a>
             
           </div>
-
-          <!-- Footer Action -->
-          <div class="pt-2">
-            <p class="text-[10px] text-gray-400 text-center mb-2 px-2">
-               我们将匿名收集生成的成分表（仅角色数据，不含个人信息），<br>用于制作全网趣味统计榜单，感谢支持~ ❤️
-            </p>
-            <button 
-              class="w-full py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold hover:opacity-90 transition-opacity"
-              @click="emit('close')"
-            >
-              开始制作
-            </button>
-          </div>
-
         </div>
       </div>
     </div>
@@ -258,12 +194,12 @@ const changelogs = ref([
 }
 
 .group-btn {
-  @apply relative overflow-hidden rounded-xl p-3
+  @apply relative overflow-hidden rounded-xl p-2
   bg-white dark:bg-gray-800 
   border-2 border-transparent hover:border-[#e4007f]
   text-gray-900 dark:text-white
   shadow-sm hover:shadow-md
-  transition-all duration-200 ease-out flex flex-col justify-between min-h-[7rem] h-auto;
+  transition-all duration-200 ease-out flex flex-col items-center justify-center min-h-[3rem] h-auto;
 }
 
 .group-btn:hover {

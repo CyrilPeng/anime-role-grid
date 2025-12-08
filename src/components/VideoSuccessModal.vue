@@ -4,7 +4,8 @@ defineProps<{
   format: 'mp4' | 'webm' | null
 }>()
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'open-join-group'])
+
 </script>
 
 <template>
@@ -69,6 +70,15 @@ const emit = defineEmits(['close'])
                     </div>
                 </div>
             </div>
+
+            <!-- Community CTA -->
+            <button
+                @click="emit('open-join-group')"
+                class="w-full py-3 bg-pink-50 hover:bg-pink-100 text-[#e4007f] font-bold rounded-xl transition-all border border-pink-100 flex items-center justify-center gap-2 group"
+            >
+                <div class="i-carbon-group text-lg group-hover:scale-110 transition-transform" />
+                <span>加入交流群分享视频</span>
+            </button>
 
             <button 
                 @click="emit('close')" 

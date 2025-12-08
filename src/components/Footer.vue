@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import QQGroupModal from './QQGroupModal.vue'
+import JoinGroupModal from './JoinGroupModal.vue'
 
 const showQQModal = ref(false)
 // Footer component with credits
@@ -41,7 +41,7 @@ const showQQModal = ref(false)
       </button>
     </div>
     
-    <QQGroupModal :show="showQQModal" @close="showQQModal = false" />
+    <JoinGroupModal :show="showQQModal" @close="showQQModal = false" />
     
     <!-- Credits -->
     <div class="space-y-4 text-sm">

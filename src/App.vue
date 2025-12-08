@@ -15,9 +15,11 @@ import { useVideoExport } from '~/logic/video-export'
 import VideoExportModal from '~/components/VideoExportModal.vue'
 import VideoSuccessModal from '~/components/VideoSuccessModal.vue'
 import TemplateGalleryModal from '~/components/TemplateGalleryModal.vue'
+import JoinGroupModal from '~/components/JoinGroupModal.vue'
 
 const showSearch = ref(false)
 const showShareModal = ref(false)
+const showJoinGroupModal = ref(false)
 const showGuideModal = ref(false)
 const showFirstTimeGuide = ref(false)
 const showTrendingGuide = ref(false)
@@ -223,6 +225,35 @@ const {
 function handleVideoExport(settings: any) {
   generateVideo(list.value, currentTemplate.value.items, settings)
 }
+
+function handleUpdateLabel(payload: { index: number, label: string }) {
+  const { index, label } = payload
+  
+  // Shallow copy to trigger reactivity
+  const newList = [...list.value]
+  if (!newList[index]) return
+  
+  // Update the label
+  newList[index] = {
+    ...newList[index],
+    label
+  }
+  
+  // Trigger storage setter
+  list.value = newList
+}
+
+function handleResetTags() {
+  if (!confirm('确定要重置当前模板的所有标签文字吗？(图片不会被清除)')) return
+  
+  const templateItems = currentTemplate.value.items
+  const newList = list.value.map((item, index) => ({
+    ...item,
+    label: templateItems[index] || ''
+  }))
+  
+  list.value = newList
+}
 </script>
 
 <template>
@@ -231,15 +262,26 @@ function handleVideoExport(settings: any) {
     
     <div class="container mx-auto flex flex-col items-center gap-6 px-4 max-w-full">
       <!-- Live Interactive Grid (Responsive, Direct URLs) -->
-      <Grid 
-        id="grid-capture-target"
-        :list="list" 
-        :cols="currentTemplate.cols"
-        :title="currentTemplate.name"
-        :default-title="currentTemplate.defaultTitle"
-        v-model:customTitle="name"
-        @select-slot="handleSelectSlot"
-      />
+      <div class="relative w-full flex flex-col items-center gap-2">
+         <!-- Hint Text (Static & Visible) -->
+         <div class="flex items-center gap-2 text-[#e4007f] bg-pink-50/80 px-4 py-1.5 rounded-full border border-pink-100 shadow-sm animate-hint-cycle">
+             <div class="i-carbon-edit text-sm" />
+             <span class="text-xs font-bold">小贴士：表格上方标题、格子下方标签文字，都是可以自定义修改的哦！</span>
+         </div>
+         
+         <div class="relative w-full"> 
+             <Grid 
+                id="grid-capture-target"
+                :list="list" 
+                :cols="currentTemplate.cols"
+                :title="currentTemplate.name"
+                :default-title="currentTemplate.defaultTitle"
+                v-model:customTitle="name"
+                @select-slot="handleSelectSlot"
+                @update-label="handleUpdateLabel"
+            />
+         </div>
+      </div>
 
       <div class="flex flex-col items-center gap-4">
         <button 
@@ -284,17 +326,29 @@ function handleVideoExport(settings: any) {
             </button>
         </div>
 
-        <!-- Template Switcher (Button) -->
-        <div class="flex items-center gap-2">
-          <img src="/logo.png" class="w-5 h-5 object-contain" />
-          <label class="text-sm text-black font-bold">当前模板:</label>
-          <button
-            @click="showTemplateModal = true"
-            class="flex items-center justify-center gap-2 bg-white border-2 border-black px-4 py-1 rounded-md text-sm font-bold min-w-[160px] transition-colors hover:border-[#e4007f] hover:text-[#e4007f] focus:outline-none"
-          >
-            <span>{{ currentTemplate.name }}</span>
-            <div i-carbon-chevron-right class="text-xs" />
-          </button>
+        <!-- Template Switcher & Reset -->
+        <div class="flex flex-col items-center gap-3 w-full">
+            <div class="flex items-center gap-2">
+            <img src="/logo.png" class="w-5 h-5 object-contain" />
+            <label class="text-sm text-black font-bold">当前模板:</label>
+            <button
+                @click="showTemplateModal = true"
+                class="flex items-center justify-center gap-2 bg-white border-2 border-black px-4 py-1.5 rounded-md text-sm font-bold min-w-[160px] transition-colors hover:border-[#e4007f] hover:text-[#e4007f] focus:outline-none"
+            >
+                <span>{{ currentTemplate.name }}</span>
+                <div i-carbon-chevron-right class="text-xs" />
+            </button>
+            </div>
+            
+            <!-- Reset Button: More visible pill style -->
+            <button 
+                @click="handleResetTags"
+                class="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gray-100 hover:bg-[#e4007f] hover:text-white transition-colors text-xs font-bold"
+                title="将所有标签重置为默认值"
+            >
+                <div class="i-carbon-reset" />
+                <span>重置当前模板所有标签</span>
+            </button>
         </div>
       </div>
     </div>
@@ -329,6 +383,7 @@ function handleVideoExport(settings: any) {
       :show="isSuccessModalOpen"
       :format="lastExportFormat"
       @close="isSuccessModalOpen = false"
+      @open-join-group="() => { isSuccessModalOpen = false; showJoinGroupModal = true }"
     />
 
     <Transition
@@ -414,9 +469,34 @@ function handleVideoExport(settings: any) {
               <div v-if="canShare" i-carbon-share />
               <span>{{ canShare ? '调用系统分享' : '好的，我去分享' }}</span>
             </button>
+            
+            <p class="text-xs text-gray-400 mt-2 mb-1">分享后别忘了来群里玩哦！</p>
+            <button
+                @click="showJoinGroupModal = true"
+                class="w-full py-2.5 bg-pink-50 hover:bg-pink-100 text-[#e4007f] font-bold rounded-xl transition-all border border-pink-100 flex items-center justify-center gap-2 group"
+            >
+                <div class="i-carbon-group text-lg group-hover:scale-110 transition-transform" />
+                <span>加入组织，寻找同好</span>
+            </button>
           </div>
         </div>
       </div>
     </Transition>
+
+    <JoinGroupModal :show="showJoinGroupModal" @close="showJoinGroupModal = false" />
   </div>
 </template>
+
+<style>
+@keyframes hint-cycle {
+  0% { opacity: 0; transform: translateY(5px); }
+  5% { opacity: 1; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(0); }
+  45% { opacity: 0; transform: translateY(-5px); }
+  100% { opacity: 0; transform: translateY(-5px); }
+}
+
+.animate-hint-cycle {
+  animation: hint-cycle 8s ease-in-out infinite;
+}
+</style>

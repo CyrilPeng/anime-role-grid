@@ -25,12 +25,15 @@ export const list = computed({
         const template = TEMPLATES.find(t => t.id === tid) || TEMPLATES[0]!
         const savedList = savedGrids.value[tid] || []
 
-        // Always use labels from the current template definition (code)
-        // Only preserve the character data from storage
-        return template.items.map((label, index) => ({
-            label,
-            character: savedList[index]?.character,
-        }))
+        // Use saved label if available, otherwise fallback to template default
+        // This allows users to customize labels and have them persist
+        return template.items.map((defaultLabel, index) => {
+            const savedItem = savedList[index]
+            return {
+                label: savedItem?.label ?? defaultLabel,
+                character: savedItem?.character,
+            }
+        })
     },
     set: (val) => {
         savedGrids.value[currentTemplateId.value] = val

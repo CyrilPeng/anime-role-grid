@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import type { GridItem } from '~/types'
 
 const props = defineProps<{
@@ -11,7 +11,41 @@ const props = defineProps<{
   forExport?: boolean
 }>()
 
-const emit = defineEmits(['select-slot', 'update:customTitle'])
+const emit = defineEmits(['select-slot', 'update:customTitle', 'update-label'])
+
+const editingIndex = ref<number | null>(null)
+const editingLabel = ref('')
+// In v-for, template refs are arrays
+const labelInput = ref<HTMLInputElement[] | null>(null)
+
+function handleLabelClick(index: number) {
+  if (props.forExport) return
+  editingIndex.value = index
+  if (props.list[index]) {
+      editingLabel.value = props.list[index].label
+  }
+  
+  // Auto focus next tick
+  nextTick(() => {
+    // Since we use v-if, the ref array should contain the element
+    if (labelInput.value && labelInput.value.length > 0) {
+       // Find the active input or just grab the first one since only one is rendered
+       labelInput.value.forEach(el => {
+           if (el && el.focus) el.focus()
+       })
+    }
+  })
+}
+
+function saveLabel(index: number) {
+  if (editingIndex.value !== index) return
+  // Emit update if changed
+  const currentItem = props.list[index]
+  if (currentItem && editingLabel.value !== currentItem.label) {
+    emit('update-label', { index, label: editingLabel.value })
+  }
+  editingIndex.value = null
+}
 
 const gridCols = computed(() => props.cols || 5)
 
@@ -116,8 +150,24 @@ function getImageUrl(url: string) {
         </div>
 
         <!-- Label Area (Bottom) -->
-        <div class="h-[20px] md:h-[25px] flex-shrink-0 flex items-center justify-center text-center bg-white border-t-2 border-black overflow-hidden px-1">
-          <span class="truncate w-full text-[10px] md:text-sm font-bold text-black leading-none">{{ item.label }}</span>
+        <!-- Label Area (Bottom) -->
+        <div 
+          class="h-[20px] md:h-[25px] flex-shrink-0 flex items-center justify-center text-center bg-white border-t-2 border-black overflow-hidden px-1 relative"
+          @click.stop="handleLabelClick(index)"
+        >
+          <input
+            v-if="editingIndex === index && !forExport"
+            ref="labelInput"
+            v-model="editingLabel"
+            class="w-full h-full text-center text-[10px] md:text-sm font-bold text-black bg-white outline-none p-0 border-none"
+            @blur="saveLabel(index)"
+            @keydown.enter="saveLabel(index)"
+            @click.stop
+          >
+          <span 
+            v-else
+            class="truncate w-full text-[10px] md:text-sm font-bold text-black leading-none"
+          >{{ item.label }}</span>
         </div>
         
         <!-- Hover Effect -->
@@ -142,4 +192,5 @@ function getImageUrl(url: string) {
 
 <style scoped>
 /* Hide scrollbar for cleaner look if desired, but keeping it is better for usability */
+
 </style>

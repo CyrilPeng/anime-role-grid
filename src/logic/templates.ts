@@ -1,4 +1,4 @@
-export type TemplateCategory = 'character' | 'work' | 'relation' | 'fun' | 'nsfw'
+export type TemplateCategory = 'character' | 'work' | 'relation' | 'fun' | 'nsfw' | 'custom'
 
 export interface Template {
     id: string
@@ -828,3 +828,20 @@ export const TEMPLATES: Template[] = [
         ]
     }
 ]
+
+// Generate Custom Grids (1x1 to 5x6)
+for (let r = 1; r <= 5; r++) {
+    for (let c = 1; c <= 6; c++) {
+        // Skip 1x1 if you don't want it, but user asked for it. 
+
+        TEMPLATES.push({
+            id: `custom_${r}x${c}`,
+            name: `自定义 ${r}x${c}`,
+            category: 'custom',
+            label: `${r}行`,
+            cols: c,
+            defaultTitle: '自定义标题',
+            items: Array(r * c).fill('自定义')
+        })
+    }
+}
