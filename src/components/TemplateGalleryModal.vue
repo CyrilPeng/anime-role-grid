@@ -90,7 +90,7 @@ function select(id: string) {
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-900">
+        <div class="flex-1 flex flex-col min-w-0 min-h-0 bg-white dark:bg-gray-900">
           <!-- Header: Title + SubLabels (Category Level 2) -->
           <div class="p-6 pb-2 border-b border-gray-100 dark:border-gray-800">
              <div class="flex items-center justify-between mb-4">
