@@ -54,6 +54,10 @@ export interface GridItemCharacter {
     id: number | string;
     name: string;
     image: string;
+    // V3 Analytics Data
+    bangumiId?: number;
+    category?: 'character' | 'subject' | 'person' | 'custom';
+    subjectType?: string; // e.g. 'anime', 'game'
 }
 
 // 格子数据类型

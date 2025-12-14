@@ -113,11 +113,30 @@ async function loadMore() {
   }
 }
 
-function handleAdd(item: BgmCharacterSearchResultItem | BgmSubjectSearchResultItem) {
+function handleAdd(item: BgmSearchResultItem) {
+  // Determine analytics data
+  const category = searchType.value === 'anime' || searchType.value === 'game' || searchType.value === 'manga' || searchType.value === 'novel' || searchType.value === 'music' 
+    ? 'subject' 
+    : searchType.value === 'real' || searchType.value === 'person' // 'real' maps to? usually person
+      ? 'person'
+      : 'character'; // Default or 'character'
+
+  let subjectType = undefined;
+  if ('platform' in item && item.platform) {
+      subjectType = item.platform;
+  } else if ('type' in item) {
+       // Map numeric type if needed, or just use semantic searchType
+       subjectType = searchType.value;
+  }
+
   emit('add', {
     id: item.id,
     name: item.name,
     image: item.images.large,
+    // V3 Analytics
+    bangumiId: item.id,
+    category: category, 
+    subjectType: subjectType
   })
   emit('close')
 }

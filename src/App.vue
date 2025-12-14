@@ -188,7 +188,27 @@ async function handleSave() {
       body: JSON.stringify({
         templateId: currentTemplateId.value,
         customTitle: name.value,
-        items: list.value
+        items: list.value.map(item => {
+          // Deep clone key properties to avoid mutation
+          const character = item.character ? { ...item.character } : undefined
+          
+          // Remove base64 image data to save bandwidth and DB space
+          // Only keep HTTP URLs (Bangumi images)
+          if (character && character.image && character.image.startsWith('data:')) {
+             character.image = undefined
+          }
+
+          return {
+            label: item.label,
+            character: character ? {
+                name: character.name,
+                image: character.image,
+                bangumiId: character.bangumiId,
+                category: character.category,
+                subjectType: character.subjectType
+            } : undefined
+          }
+        })
       })
     }).catch(err => {
       // Slient fail for analytics

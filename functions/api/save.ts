@@ -10,7 +10,10 @@ interface SaveRequest {
         imgUrl?: string,
         character?: {
             name: string,
-            image?: string
+            image?: string,
+            bangumiId?: number,
+            category?: string,
+            subjectType?: string
         }
     }>;
 }
@@ -75,11 +78,22 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
             if (item.character && item.character.name) {
-                const imgUrl = item.imgUrl || item.character.image || null;
+                let imgUrl = item.imgUrl || item.character.image || null;
+
+                // OPTIMIZATION: Do not save Base64 data to D1 to save space
+                if (imgUrl && imgUrl.startsWith('data:image')) {
+                    imgUrl = null;
+                }
+
+                // V3 Analytics Data
+                const bangumiId = item.character.bangumiId || null;
+                const category = item.character.category || null;
+                const subjectType = item.character.subjectType || null;
+
                 statements.push(
                     env.DB.prepare(
-                        'INSERT INTO save_items (save_id, slot_index, slot_label, character_name, img_url) VALUES (?, ?, ?, ?, ?)'
-                    ).bind(saveId, i, item.label, item.character.name, imgUrl)
+                        'INSERT INTO save_items (save_id, slot_index, slot_label, character_name, img_url, bangumi_id, item_category, subject_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                    ).bind(saveId, i, item.label, item.character.name, imgUrl, bangumiId, category, subjectType)
                 );
             }
         }
