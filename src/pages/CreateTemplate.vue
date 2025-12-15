@@ -9,7 +9,8 @@ import type { GridItem } from '~/types'
 
 console.log('CreateTemplate loaded')
 
-const title = ref('')
+const mainTitle = ref('我的二次元成分表')
+const templateName = ref('')
 const creatorName = ref('')
 const cols = ref(4)
 const rowCount = ref(3) // Virtual helper
@@ -51,7 +52,7 @@ const captureData = reactive({
 
 // Generate QR and Capture
 async function generateChallengeCard() {
-  if (!title.value) return alert('请先输入一个响亮的标题！')
+  if (!templateName.value) return alert('请填写模版名称！')
   
   loading.value = true
   try {
@@ -60,7 +61,7 @@ async function generateChallengeCard() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: title.value,
+        title: templateName.value,
         type: 'grid',
         config: {
           cols: cols.value,
@@ -83,13 +84,13 @@ async function generateChallengeCard() {
     generatedImage.value = await exportGridAsImage(
         list.value, 
         'custom_viral', // Special ID 
-        title.value, 
+        mainTitle.value, 
         'challenge-card', 
         false, 
-        { cols: cols.value, creator: creatorName.value }, // Template Config with Creator
-        qrDataUrl, // QR Code
-        'challenge', // Variant
-        title.value // Use title as templateName too
+        { cols: cols.value, creator: creatorName.value }, 
+        qrDataUrl, 
+        'challenge',
+        templateName.value // Template Name Subtitle
     )
 
     step.value = 2
@@ -175,12 +176,22 @@ async function copyLink() {
         <!-- Controls -->
         <div class="grid md:grid-cols-2 gap-8 mb-8">
            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-bold mb-2 text-gray-600">① 标题 (必填)</label>
+               <div>
+                <label class="block text-sm font-bold mb-2 text-gray-600">① 标题 (Main Title)</label>
                 <input 
-                  v-model="title" 
+                  v-model="mainTitle" 
                   type="text" 
                   placeholder="例如：我的二次元成分表"
+                  class="w-full text-lg font-bold border-b-2 border-gray-200 focus:border-[#e4007f] outline-none py-2 bg-transparent transition-colors placeholder-gray-300"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-bold mb-2 text-gray-600">② 模版名 (Template Name)</label>
+                <input 
+                  v-model="templateName" 
+                  type="text" 
+                  placeholder="例如：火影忍者人物表"
                   class="w-full text-lg font-bold border-b-2 border-gray-200 focus:border-[#e4007f] outline-none py-2 bg-transparent transition-colors placeholder-gray-300"
                 />
               </div>
@@ -219,8 +230,8 @@ async function copyLink() {
                         <Grid 
                             :list="list" 
                             :cols="cols"
-                            :title="title || '预览标题'"
-                            :customTitle="title"
+                            :title="templateName || '模版名称'"
+                            :customTitle="mainTitle"
                             @update-label="handleUpdateLabel"
                             :forExport="true" 
                             :editable="true"

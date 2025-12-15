@@ -204,7 +204,6 @@ function handleVideoExport(settings: any) {
                 :list="list" 
                 :cols="Number(templateData?.config.cols) || 3"
                 :title="mode === 'official' ? templateData?.title : ''" 
-                :default-title="templateData?.title"
                 :customTitle="props.customTitle"
                 @update:customTitle="emit('update:customTitle', $event)"
                 @select-slot="handleSelectSlot"
