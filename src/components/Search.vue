@@ -453,56 +453,32 @@ onMounted(() => {
                       </div>
                  </div>
 
-                 <!-- Tier 2: 4-10 (Medium Row) -->
-                 <div v-if="trendingList.length > 3" class="flex flex-col gap-2">
-                    <h4 class="text-xs font-bold text-gray-500 ml-1">潜力新星 (4-10)</h4>
-                    <div class="overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-                        <div class="flex gap-3">
-                            <div
-                                v-for="item in trendingList.slice(3, 10)"
-                                :key="item.id"
-                                class="flex-shrink-0 w-20 flex flex-col gap-1 cursor-pointer group"
-                                @click="handleAdd({
-                                    id: item.id,
-                                    name: item.name,
-                                    images: { large: item.image, medium: item.image, grid: item.image, small: item.image, common: item.image },
-                                } as any)"
-                            >
-                                <div class="w-20 h-28 rounded-lg overflow-hidden bg-gray-100 relative shadow-sm border border-gray-100 group-hover:border-[#e4007f] transition-colors">
-                                    <span class="absolute top-0 left-0 bg-black/60 text-white text-[10px] px-1.5 rounded-br-lg font-bold z-10">{{ trendingList.indexOf(item) + 1 }}</span>
-                                    <img 
-                                        :src="item.image" 
-                                        class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
-                                        loading="lazy"
-                                        referrerpolicy="no-referrer"
-                                    >
-                                </div>
-                                <p class="text-[10px] text-gray-700 font-bold truncate text-center w-full">{{ item.name }}</p>
-                            </div>
-                        </div>
-                    </div>
-                 </div>
-
-                 <!-- Tier 3: 11-30 (Small Grid) -->
-                 <div v-if="trendingList.length > 10" class="flex flex-col gap-2">
-                    <h4 class="text-xs font-bold text-gray-500 ml-1">更多热门 (11-30)</h4>
-                    <div class="grid grid-cols-4 md:grid-cols-5 gap-3"> <!-- Dense grid -->
+                 <!-- Tier 2: The Rest (4-63) - Unified Grid -->
+                 <div v-if="trendingList.length > 3">
+                    <h4 class="text-xs font-bold text-gray-500 ml-1 mb-2">更多热门 (4-{{ trendingList.length }})</h4>
+                    <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                         <div
-                            v-for="item in trendingList.slice(10)"
+                            v-for="item in trendingList.slice(3)"
                             :key="item.id"
-                            class="flex flex-col items-center gap-1 cursor-pointer group bg-gray-50 hover:bg-white p-2 rounded-lg border border-transparent hover:border-gray-200 transition-all"
-                             @click="handleAdd({
-                                    id: item.id,
-                                    name: item.name,
-                                    images: { large: item.image, medium: item.image, grid: item.image, small: item.image, common: item.image },
-                                } as any)"
+                            class="relative group cursor-pointer"
+                            @click="handleAdd({
+                                id: item.id,
+                                name: item.name,
+                                images: { large: item.image, medium: item.image, grid: item.image, small: item.image, common: item.image },
+                            } as any)"
                         >
-                            <div class="relative w-10 h-10 rounded-full overflow-hidden border border-gray-200 group-hover:border-[#e4007f]">
-                                <img :src="item.image" class="w-full h-full object-cover" loading="lazy" referrerpolicy="no-referrer">
-                            </div>
-                             <div class="flex items-center gap-1 w-full justify-center">
-                                <span class="text-[9px] text-gray-400 font-mono">{{ trendingList.indexOf(item) + 1 }}</span>
-                                <p class="text-[10px] text-gray-700 font-medium truncate max-w-[4em]">{{ item.name }}</p>
+                            <div class="w-full aspect-[2/3] rounded-lg overflow-hidden bg-gray-100 relative shadow-sm border border-gray-100 group-hover:border-[#e4007f] transition-colors">
+                                <span class="absolute top-0 left-0 bg-black/60 text-white text-[10px] px-1.5 rounded-br-lg font-bold z-10">{{ trendingList.indexOf(item) + 1 }}</span>
+                                <img 
+                                    :src="item.image" 
+                                    class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                                    loading="lazy"
+                                    referrerpolicy="no-referrer"
+                                >
+                                <!-- Simple Name Overlay for small cards -->
+                                <div class="absolute bottom-0 left-0 right-0 bg-black/60 p-1">
+                                    <p class="text-white text-[10px] font-bold truncate text-center">{{ item.name }}</p>
+                                </div>
                             </div>
                         </div>
                     </div>

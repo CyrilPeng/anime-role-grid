@@ -10,7 +10,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const period = url.searchParams.get('period') || '24h';
 
         let timeCondition = '';
-        let limit = 30;
+        let limit = 63;
 
         // Logic for different periods
         if (period === '12h') {
