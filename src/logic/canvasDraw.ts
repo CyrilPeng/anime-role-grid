@@ -73,32 +73,76 @@ export class CanvasGenerator {
         resolve(placeholder)
     }
 
+    private getFooterLayout(width: number, filler?: string, creator?: string): { mode: 'horizontal' | 'vertical', height: number } {
+        // Measure Components
+        const padding = 60
+        const safeWidth = width - (padding * 2)
+
+        // 1. Brand Width (Logo 50 + Text ~200 + Gap 20)
+        // Hardcoded approximation is safer than async measure
+        // Logo(50) + Gap(20) + "【我推的格子】"(~210 at 30px bold)
+        const brandWidth = 280
+
+        // 2. QR Width (QR 130 + Gap 25 + Text 150)
+        // QR(130) + Gap(10) + Text(~180) = ~320
+        const qrWidth = 320
+
+        // 3. Attribution Width
+        // Depends on text length
+        let attrWidth = 0
+        if (creator || filler) {
+            let text = ''
+            if (creator && !filler) text = `制表: ${creator}`
+            else if (creator && filler) text = `制表: ${creator}  |  填表: ${filler}`
+            else if (!creator && filler) text = `填表: ${filler}`
+
+            // Approx width: Chinese char ~ 30px, Space ~ 10px
+            // Simple formula: length * 30 * 0.8 (since not all are wide) + padding
+            // Better: use exact measure if ctx available, but here we estimate
+            this.ctx.font = `bold 30px ${THEME.typography.fontFamily}`
+            attrWidth = this.ctx.measureText(text).width + 60 // +60 for gap
+        }
+
+        const totalRequired = brandWidth + attrWidth + qrWidth
+
+        // Decision
+        // If fits with some breathing room (e.g. 50px)
+        const fitsHorizontal = totalRequired <= safeWidth
+
+        if (fitsHorizontal) {
+            return { mode: 'horizontal', height: 160 }
+        } else {
+            return { mode: 'vertical', height: 320 }
+        }
+    }
+
     async generate(options: DrawOptions): Promise<string> {
         const { list, templateId, customTitle, templateConfig } = options
         const template = TEMPLATES.find(t => t.id === templateId)
 
-        // Fallback or Custom logic
         const cols = template ? template.cols : (templateConfig?.cols || 3)
         const templateTitle = options.templateName || template?.name || '自定义模版'
         const defaultTitle = template?.defaultTitle || customTitle
 
         const rows = Math.ceil(list.length / cols)
-
         const gridWidth = cols * CELL_WIDTH
-        // Adjust cell height if showing name
         const nameHeight = options.showName ? LABEL_HEIGHT : 0
         const actualCellHeight = CELL_HEIGHT + nameHeight
 
         const isChallenge = options.variant === 'challenge'
-
         const gridHeight = rows * actualCellHeight
-
         const titleHeight = isChallenge ? 250 : 160
         const padding = 60
-
         const canvasWidth = gridWidth + (padding * 2)
-        const isNarrow = canvasWidth < 700 // Threshold for narrow layout
-        const watermarkHeight = isChallenge ? (isNarrow ? 320 : 160) : 60
+
+        // Calculate Footer Layout ahead of time
+        let watermarkHeight = 60
+        let footerLayout: { mode: 'horizontal' | 'vertical', height: number } = { mode: 'horizontal', height: 160 }
+
+        if (isChallenge) {
+            footerLayout = this.getFooterLayout(canvasWidth, templateConfig?.filler, templateConfig?.creator)
+            watermarkHeight = footerLayout.height
+        }
 
         const canvasHeight = titleHeight + gridHeight + watermarkHeight + padding
 
@@ -109,14 +153,9 @@ export class CanvasGenerator {
         this.ctx.fillStyle = isChallenge ? '#fafafa' : THEME.colors.bg
         this.ctx.fillRect(0, 0, canvasWidth, canvasHeight)
 
-        // Decor for challenge
         if (isChallenge) {
-            // Clean white background for consistency
             this.ctx.fillStyle = '#ffffff'
             this.ctx.fillRect(0, 0, canvasWidth, canvasHeight)
-        }
-
-        if (isChallenge) {
             this.drawChallengeHeader(customTitle, templateTitle, canvasWidth, titleHeight)
         } else {
             this.drawTitle(customTitle, defaultTitle, templateTitle, canvasWidth, titleHeight)
@@ -168,7 +207,15 @@ export class CanvasGenerator {
         this.ctx.stroke()
 
         if (isChallenge && options.qrCodeUrl) {
-            await this.drawChallengeFooter(options.qrCodeUrl, canvasWidth, canvasHeight, padding, watermarkHeight, templateConfig?.filler, templateConfig?.creator)
+            await this.drawChallengeFooter(
+                options.qrCodeUrl,
+                canvasWidth,
+                canvasHeight,
+                padding,
+                footerLayout,
+                templateConfig?.filler,
+                templateConfig?.creator
+            )
         } else {
             await this.drawWatermark(canvasWidth, canvasHeight, padding)
         }
@@ -390,13 +437,20 @@ export class CanvasGenerator {
         }
     }
 
-    private async drawChallengeFooter(qrUrl: string, width: number, height: number, padding: number, boxHeight: number, filler?: string, creator?: string) {
+    private async drawChallengeFooter(
+        qrUrl: string,
+        width: number,
+        height: number,
+        padding: number,
+        layout: { mode: 'horizontal' | 'vertical', height: number },
+        filler?: string,
+        creator?: string
+    ) {
         const ctx = this.ctx
-        // boxHeight passed from generate
+        const boxHeight = layout.height
         const boxY = height - boxHeight - padding / 2
         const boxX = padding
         const boxWidth = width - (padding * 2)
-        const isNarrow = boxHeight > 200 // Detect narrow layout based on height
 
         const centerX = boxX + boxWidth / 2
 
@@ -415,9 +469,9 @@ export class CanvasGenerator {
             const logoSize = 50
             const qrSize = 130
 
-            // --- NARROW LAYOUT (Vertical Stack) ---
-            if (isNarrow) {
-                // 1. Top Section: Logo + Brand (Centered Row)
+            // --- VERTICAL STACK LAYOUT ---
+            if (layout.mode === 'vertical') {
+                // 1. Top Section: Logo + Brand
                 const topY = boxY + 50
                 ctx.font = `bold 30px ${THEME.typography.fontFamily}`
 
@@ -429,10 +483,8 @@ export class CanvasGenerator {
                 const totalTopWidth = logoSize + 20 + brandWidth
                 const startX = centerX - totalTopWidth / 2
 
-                // Draw Logo
                 ctx.drawImage(logo, startX, topY - logoSize / 2, logoSize, logoSize)
 
-                // Draw Brand
                 const textX = startX + logoSize + 20
                 ctx.textAlign = 'left'
                 ctx.textBaseline = 'middle'
@@ -444,34 +496,33 @@ export class CanvasGenerator {
                 ctx.fillStyle = THEME.colors.watermark || '#9ca3af'
                 ctx.fillText(part3, textX + ctx.measureText(part1 + part2).width, topY)
 
-                // 2. Attribution (Centered Below)
+                // 2. Attribution (Auto-Shrink)
                 let attrY = topY + 50
-
                 const hasCreator = !!creator
                 const hasFiller = !!filler
 
                 if (hasCreator || hasFiller) {
                     ctx.textAlign = 'center'
                     ctx.fillStyle = '#6b7280'
-                    ctx.font = `bold 24px ${THEME.typography.fontFamily}`
 
                     let text = ''
                     if (hasCreator && !hasFiller) text = `制表: ${creator}`
                     else if (hasCreator && hasFiller) text = `制表: ${creator} | 填表: ${filler}`
                     else if (!hasCreator && hasFiller) text = `填表: ${filler}`
 
+                    // Auto-shrink logic
+                    let attrFontSize = 24
+                    ctx.font = `bold ${attrFontSize}px ${THEME.typography.fontFamily}`
+                    while (ctx.measureText(text).width > boxWidth && attrFontSize > 12) {
+                        attrFontSize -= 2
+                        ctx.font = `bold ${attrFontSize}px ${THEME.typography.fontFamily}`
+                    }
+
                     ctx.fillText(text, centerX, attrY)
                 }
 
-                // 3. QR Code + Text (Centered Bottom)
+                // 3. QR Code with Text (Side by Side Centered)
                 const qrY = boxY + boxHeight - qrSize - 20
-
-                // Stack text next to QR if enough space, otherwise just stack QR
-                // For safety and clean look on narrow phones, let's keep QR centered
-                // and put text to the right if width permits (most phones > 350px)
-                // 1 col grid width = 420px total. 300px internal cell.
-                // 420px is enough for side-by-side QR (130) + Text.
-
                 const textBlockWidth = 140
                 const totalQRWidth = qrSize + 20 + textBlockWidth
                 const qrStartX = centerX - totalQRWidth / 2
@@ -491,7 +542,7 @@ export class CanvasGenerator {
                 ctx.fillText('长按识别二维码', textStartX, qrCenterY + 16)
 
             }
-            // --- WIDE LAYOUT (Side-by-Side) ---
+            // --- HORIZONTAL LAYOUT ---
             else {
                 // Logo Area
                 const logoY = boxY + (boxHeight - 50) / 2
@@ -531,6 +582,8 @@ export class CanvasGenerator {
                     if (hasCreator && !hasFiller) text = `制表: ${creator}`
                     else if (hasCreator && hasFiller) text = `制表: ${creator}  |  填表: ${filler}`
                     else if (!hasCreator && hasFiller) text = `填表: ${filler}`
+
+                    // Simple truncating if needed (though getFooterLayout ensure it fits mostly)
                     ctx.fillText(text, infoX, centerY)
                 }
 
