@@ -393,37 +393,71 @@ onMounted(() => {
                  <div i-carbon-circle-dash class="animate-spin text-2xl text-gray-300" />
             </div>
 
-            <div v-else-if="trendingList.length > 0" class="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-                 <div
-                    v-for="item in trendingList"
-                    :key="item.id"
-                    class="break-inside-avoid group flex flex-col gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                    @click="handleAdd({
-                        id: item.id,
-                        name: item.name,
-                        images: { large: item.image, medium: item.image, grid: item.image, small: item.image, common: item.image },
-                    } as any)"
-                  >
-                    <div class="w-full overflow-hidden rounded-lg bg-gray-100 relative">
-                        <!-- Rank Badge -->
-                        <div 
-                           class="absolute top-0 left-0 z-10 px-2 py-0.5 text-[10px] font-bold text-white rounded-br-lg shadow-sm"
-                           :class="trendingList.indexOf(item) < 3 ? 'bg-[#e4007f]' : 'bg-gray-400'"
+            <div v-else-if="trendingList.length > 0" class="flex flex-col gap-4">
+                 <!-- Top 3 - Horizontal Row -->
+                 <div class="grid grid-cols-3 gap-3">
+                     <div
+                        v-for="item in trendingList.slice(0, 3)"
+                        :key="item.id"
+                        class="relative group cursor-pointer"
+                        @click="handleAdd({
+                            id: item.id,
+                            name: item.name,
+                            images: { large: item.image, medium: item.image, grid: item.image, small: item.image, common: item.image },
+                        } as any)"
+                      >
+                         <div class="w-full aspect-[2/3] overflow-hidden rounded-lg bg-gray-100 relative shadow-md border-2" :class="trendingList.indexOf(item) === 0 ? 'border-yellow-400' : (trendingList.indexOf(item) === 1 ? 'border-gray-300' : 'border-orange-300')">
+                            <!-- Rank Badge -->
+                            <div 
+                               class="absolute top-0 left-0 z-10 px-2 py-0.5 text-xs font-bold text-white rounded-br-lg shadow-sm flex items-center gap-1"
+                               :class="trendingList.indexOf(item) === 0 ? 'bg-yellow-500' : (trendingList.indexOf(item) === 1 ? 'bg-gray-400' : 'bg-orange-400')"
+                            >
+                                <div v-if="trendingList.indexOf(item) === 0" class="i-carbon-trophy" />
+                                <span>TOP {{ trendingList.indexOf(item) + 1 }}</span>
+                            </div>
+                            
+                            <img 
+                                :src="item.image" 
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                loading="lazy"
+                                referrerpolicy="no-referrer"
+                            >
+                            
+                            <!-- Name Overlay -->
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-6">
+                                <p class="text-white text-xs font-bold truncate text-center">{{ item.name }}</p>
+                                <p class="text-white/80 text-[10px] text-center scale-90">{{ item.count }} 人选TA</p>
+                            </div>
+                         </div>
+                      </div>
+                 </div>
+
+                 <!-- Remaining Items - Horizontal Scroll -->
+                 <div class="overflow-x-auto pb-4 -mx-1 px-1 scrollbar-hide">
+                    <div class="flex gap-3">
+                        <div
+                            v-for="item in trendingList.slice(3)"
+                            :key="item.id"
+                            class="flex-shrink-0 w-20 flex flex-col gap-1 cursor-pointer group"
+                            @click="handleAdd({
+                                id: item.id,
+                                name: item.name,
+                                images: { large: item.image, medium: item.image, grid: item.image, small: item.image, common: item.image },
+                            } as any)"
                         >
-                            #{{ trendingList.indexOf(item) + 1 }}
+                            <div class="w-20 h-28 rounded-md overflow-hidden bg-gray-100 relative shadow-sm border border-gray-100 group-hover:border-[#e4007f] transition-colors">
+                                <span class="absolute top-0 left-0 bg-black/50 text-white text-[10px] px-1.5 rounded-br font-bold z-10">{{ trendingList.indexOf(item) + 1 }}</span>
+                                <img 
+                                    :src="item.image" 
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                    loading="lazy"
+                                    referrerpolicy="no-referrer"
+                                >
+                            </div>
+                            <p class="text-[10px] text-gray-700 font-bold truncate text-center w-full">{{ item.name }}</p>
                         </div>
-                        <img 
-                            :src="item.image" 
-                            class="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
-                            referrerpolicy="no-referrer"
-                        >
                     </div>
-                    <p class="w-full text-center text-sm font-bold text-black px-1 truncate" :title="item.name">
-                    {{ item.name }}
-                    </p>
-                    <p class="text-[10px] text-gray-400 text-center -mt-1">{{ item.count }} 人已使用</p>
-                  </div>
+                 </div>
             </div>
             
             <div v-else class="text-center py-8 text-gray-400 text-xs">
