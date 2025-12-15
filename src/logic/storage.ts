@@ -22,18 +22,24 @@ if (legacyList.value.length > 0 && !savedGrids.value['classic']) {
 export const list = computed({
     get: () => {
         const tid = currentTemplateId.value
-        const template = TEMPLATES.find(t => t.id === tid) || TEMPLATES[0]!
         const savedList = savedGrids.value[tid] || []
 
-        // Use saved label if available, otherwise fallback to template default
-        // This allows users to customize labels and have them persist
-        return template.items.map((defaultLabel, index) => {
-            const savedItem = savedList[index]
-            return {
-                label: savedItem?.label ?? defaultLabel,
-                character: savedItem?.character,
-            }
-        })
+        // If it's a known static template, we merge with its structure
+        const template = TEMPLATES.find(t => t.id === tid)
+
+        if (template) {
+            return template.items.map((defaultLabel, index) => {
+                const savedItem = savedList[index]
+                return {
+                    label: savedItem?.label ?? defaultLabel,
+                    character: savedItem?.character,
+                }
+            })
+        }
+
+        // If it's custom (not in TEMPLATES) or unknown, strictly use saved data
+        // This prevents "phantom" items from the default template appearing
+        return savedList
     },
     set: (val) => {
         savedGrids.value[currentTemplateId.value] = val

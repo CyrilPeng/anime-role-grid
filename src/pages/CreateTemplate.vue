@@ -115,18 +115,46 @@ const shareLink = computed(() => {
 })
 
 async function copyLink() {
-  const url = shareLink.value
-  if (navigator.clipboard) {
+  const text = shareLink.value
+  
+  // Strategy 1: Clipboard API
+  if (navigator.clipboard && navigator.clipboard.writeText) {
     try {
-      await navigator.clipboard.writeText(url)
+      await navigator.clipboard.writeText(text)
       copied.value = true
       setTimeout(() => copied.value = false, 2000)
+      return
     } catch (err) {
-      console.error('Copy failed', err)
-      alert('复制失败，请手动复制')
+      console.warn('Clipboard API failed, trying fallback...', err)
     }
-  } else {
-    alert('请手动复制链接')
+  }
+
+  // Strategy 2: Fallback (execCommand) - Better for some WebViews
+  try {
+    const textArea = document.createElement("textarea")
+    textArea.value = text
+    
+    // Ensure it's not visible but part of DOM
+    textArea.style.position = "fixed"
+    textArea.style.left = "-9999px"
+    textArea.style.top = "0"
+    document.body.appendChild(textArea)
+    
+    textArea.focus()
+    textArea.select()
+    
+    const successful = document.execCommand('copy')
+    document.body.removeChild(textArea)
+    
+    if (successful) {
+      copied.value = true
+      setTimeout(() => copied.value = false, 2000)
+    } else {
+      throw new Error('execCommand returned false')
+    }
+  } catch (err) {
+    console.error('Copy failed', err)
+    alert(`复制失败，请手动长按链接复制：\n${text}`)
   }
 }
 </script>
