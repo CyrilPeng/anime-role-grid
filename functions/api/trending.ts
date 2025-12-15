@@ -31,7 +31,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 si.character_name as name, 
                 si.bangumi_id as id, 
                 si.img_url as image, -- Note: This might be NULL if it was a custom base64, but for Bangumi items it's a URL
-                COUNT(*) as count
+                COUNT(DISTINCT s.user_hash) as count
             FROM save_items si
             JOIN saves s ON si.save_id = s.id
             WHERE 1=1
