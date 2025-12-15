@@ -17,6 +17,7 @@ interface DrawOptions {
     templateConfig?: { cols: number, creator?: string, filler?: string }
     qrCodeUrl?: string
     variant?: 'standard' | 'challenge'
+    templateName?: string
 }
 
 export class CanvasGenerator {
@@ -78,7 +79,7 @@ export class CanvasGenerator {
 
         // Fallback or Custom logic
         const cols = template ? template.cols : (templateConfig?.cols || 3)
-        const templateTitle = template?.name || '自定义模版'
+        const templateTitle = options.templateName || template?.name || '自定义模版'
         const defaultTitle = template?.defaultTitle || customTitle
 
         const rows = Math.ceil(list.length / cols)
@@ -114,7 +115,7 @@ export class CanvasGenerator {
         }
 
         if (isChallenge) {
-            this.drawChallengeHeader(customTitle, canvasWidth, titleHeight, templateConfig?.creator)
+            this.drawChallengeHeader(customTitle, templateTitle, canvasWidth, titleHeight)
         } else {
             this.drawTitle(customTitle, defaultTitle, templateTitle, canvasWidth, titleHeight)
         }
@@ -165,7 +166,7 @@ export class CanvasGenerator {
         this.ctx.stroke()
 
         if (isChallenge && options.qrCodeUrl) {
-            await this.drawChallengeFooter(options.qrCodeUrl, canvasWidth, canvasHeight, padding, templateConfig?.filler)
+            await this.drawChallengeFooter(options.qrCodeUrl, canvasWidth, canvasHeight, padding, templateConfig?.filler, templateConfig?.creator)
         } else {
             await this.drawWatermark(canvasWidth, canvasHeight, padding)
         }
@@ -353,7 +354,7 @@ export class CanvasGenerator {
         this.ctx.restore()
     }
 
-    private drawChallengeHeader(title: string, width: number, height: number, creator?: string) {
+    private drawChallengeHeader(title: string, subtitle: string, width: number, height: number) {
         const centerX = width / 2
         const y = height / 2
 
@@ -363,23 +364,26 @@ export class CanvasGenerator {
         this.ctx.fillStyle = '#000000'
         this.ctx.textAlign = 'center'
         this.ctx.textBaseline = 'bottom'
-        this.ctx.fillText('CHALLENGE', centerX, y - 50)
+        this.ctx.fillText('CHALLENGE', centerX, y - 60)
 
-        // Title
-        this.ctx.font = `bold 80px "Noto Serif SC", serif`
+        // Main Title (User's Custom Title)
+        this.ctx.font = `bold 72px "Noto Serif SC", serif`
         this.ctx.fillStyle = '#111827' // gray-900
         this.ctx.textBaseline = 'middle'
         this.ctx.shadowColor = 'rgba(0,0,0,0.1)'
         this.ctx.shadowBlur = 10
-        this.ctx.fillText(title, centerX, y + 10)
+        this.ctx.fillText(title, centerX, y - 10)
         this.ctx.shadowBlur = 0
 
-        // Creator Name
-        if (creator) {
-            this.ctx.font = `bold 20px sans-serif`
-            this.ctx.fillStyle = '#6b7280' // gray-500
-            this.ctx.fillText(`出题人: ${creator}`, centerX, y + 55)
+        // Subtitle (Template Name)
+        if (subtitle && subtitle !== title) {
+            this.ctx.font = `bold 32px ${THEME.typography.fontFamily}`
+            this.ctx.fillStyle = THEME.colors.accent // pink
+            this.ctx.fillText(`— ${subtitle} —`, centerX, y + 45)
         }
+
+        // Creator Name (Moved to footer, removed here as per request)
+        // Kept logic clean.
 
         // Decorative Line
         this.ctx.fillStyle = THEME.colors.accent // pink
@@ -389,7 +393,7 @@ export class CanvasGenerator {
         this.ctx.restore()
     }
 
-    private async drawChallengeFooter(qrUrl: string, width: number, height: number, padding: number, filler?: string) {
+    private async drawChallengeFooter(qrUrl: string, width: number, height: number, padding: number, filler?: string, creator?: string) {
         const ctx = this.ctx
         const boxHeight = 120 // Slightly smaller footer
         const boxY = height - boxHeight - padding / 2
@@ -420,13 +424,19 @@ export class CanvasGenerator {
             // "我推的格子"
             ctx.fillStyle = THEME.colors.text
             ctx.font = `bold 28px ${THEME.typography.fontFamily}`
-            ctx.fillText('我推的格子', textX, logoY + logoSize / 2 - (filler ? 10 : 0))
+            ctx.fillText('我推的格子', textX, logoY + logoSize / 2 - ((filler || creator) ? 14 : 0))
 
-            // Filler Name
-            if (filler) {
+            // Filler & Creator Name
+            if (filler || creator) {
                 ctx.fillStyle = '#6b7280' // gray-500
                 ctx.font = `bold 16px ${THEME.typography.fontFamily}`
-                ctx.fillText(`填表人: ${filler}`, textX, logoY + logoSize / 2 + 20)
+
+                let text = ''
+                if (creator) text += `出题: ${creator}`
+                if (creator && filler) text += '  |  '
+                if (filler) text += `答题: ${filler}`
+
+                ctx.fillText(text, textX, logoY + logoSize / 2 + 18)
             }
 
         } catch (e) {

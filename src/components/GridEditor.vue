@@ -6,7 +6,7 @@ import Search from '~/components/Search.vue'
 import VideoExportModal from '~/components/VideoExportModal.vue'
 import VideoSuccessModal from '~/components/VideoSuccessModal.vue'
 import JoinGroupModal from '~/components/JoinGroupModal.vue'
-import { list, name as customTitle, currentTemplateId } from '~/logic/storage'
+import { list, currentTemplateId } from '~/logic/storage'
 import { exportGridAsImage } from '~/logic/export'
 import { useVideoExport } from '~/logic/video-export'
 
@@ -22,11 +22,13 @@ const props = defineProps<{
   } | null
   loading?: boolean
   error?: string
+  customTitle?: string
 }>()
 
 const emit = defineEmits<{
   (e: 'open-gallery'): void
   (e: 'reset-tags'): void
+  (e: 'update:customTitle', value: string): void
 }>()
 
 const router = useRouter()
@@ -113,10 +115,13 @@ async function handleSave() {
     generatedImage.value = await exportGridAsImage(
         list.value, 
         currentTemplateId.value, 
-        customTitle.value, 
+        props.customTitle || '', 
         'anime-grid', 
         showCharacterName.value,
-        exportConfig
+        exportConfig,
+        undefined, // qrCode
+        props.mode === 'custom' ? 'challenge' : 'standard',
+        props.templateData?.title // templateName
     )
     showShareModal.value = true
   } catch (e: any) {
@@ -200,7 +205,8 @@ function handleVideoExport(settings: any) {
                 :cols="Number(templateData?.config.cols) || 3"
                 :title="mode === 'official' ? templateData?.title : ''" 
                 :default-title="templateData?.title"
-                v-model:customTitle="customTitle"
+                :customTitle="props.customTitle"
+                @update:customTitle="emit('update:customTitle', $event)"
                 @select-slot="handleSelectSlot"
                 @update-label="handleUpdateLabel"
                 :show-character-name="showCharacterName"

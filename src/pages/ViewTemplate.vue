@@ -4,14 +4,14 @@ import { useRoute } from 'vue-router'
 import Header from '~/components/Header.vue'
 import Footer from '~/components/Footer.vue'
 import GridEditor from '~/components/GridEditor.vue'
-import { list, name as customTitle, currentTemplateId } from '~/logic/storage'
+import { list, currentTemplateId } from '~/logic/storage'
 import { TEMPLATES } from '~/logic/templates'
 
 const route = useRoute()
-// const router = useRouter() // Unused
 const id = route.params.id as string
 const loading = ref(true)
 const error = ref('')
+const customTitle = ref('') // Local title state
 
 const templateData = ref<{
   type: string
@@ -31,17 +31,17 @@ onMounted(async () => {
     
     // Init Storage
     if (templateData.value) {
-        customTitle.value = templateData.value.title
-        // IMPORTANT: Reset list completely first to avoid pollution from previous larger templates
-        list.value = [] 
+        // 1. Set ID First
+        currentTemplateId.value = 'custom' 
         
-        // Init List
+        // Initialize local title with template title
+        customTitle.value = templateData.value.title
+        
+        // 2. Populate list
         list.value = templateData.value.config.items.map(label => ({
             label,
             character: undefined
         }))
-        // Set ID to generic 'custom'
-        currentTemplateId.value = 'custom' 
     }
   } catch (e: any) {
     console.error(e)
@@ -58,7 +58,7 @@ onUnmounted(() => {
         const defaultId = TEMPLATES[0]?.id || '2024_general-anime'
         currentTemplateId.value = defaultId
     }
-    customTitle.value = ''
+    // No need to clear customTitle here as it is local ref
 })
 </script>
 
@@ -70,6 +70,7 @@ onUnmounted(() => {
          <GridEditor 
             mode="custom" 
             :template-data="templateData" 
+            v-model:customTitle="customTitle"
             :loading="loading" 
             :error="error"
         />
