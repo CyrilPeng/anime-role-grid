@@ -40,7 +40,7 @@ const showQQModal = ref(false)
         <span class="font-bold tracking-widest">QQ Group</span>
       </button>
       <a 
-        href="https://space.bilibili.com/282213437" 
+        href="https://space.bilibili.com/36078469" 
         target="_blank" 
         class="flex items-center gap-2 hover:text-[#e4007f] transition-colors group"
       >
