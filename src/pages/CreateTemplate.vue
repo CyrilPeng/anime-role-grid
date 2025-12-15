@@ -86,9 +86,10 @@ async function generateChallengeCard() {
         title.value, 
         'challenge-card', 
         false, 
-        { cols: cols.value }, // Template Config
+        { cols: cols.value, creator: creatorName.value }, // Template Config with Creator
         qrDataUrl, // QR Code
-        'challenge' // Variant
+        'challenge', // Variant
+        title.value // Use title as templateName too
     )
 
     step.value = 2

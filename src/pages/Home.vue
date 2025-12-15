@@ -30,6 +30,18 @@ if (typeof window !== 'undefined') {
   }
 }
 
+import { onMounted } from 'vue'
+
+// ...
+
+onMounted(() => {
+  // Integrity Check: If current ID is not in official list (e.g. 'custom'), reset it
+  const isOfficial = TEMPLATES.some(t => t.id === currentTemplateId.value)
+  if (!isOfficial) {
+      currentTemplateId.value = TEMPLATES[0]?.id || '2024_general-anime'
+  }
+})
+
 watch(showFirstTimeGuide, (newVal, oldVal) => {
   if (oldVal === true && newVal === false) {
     if (shouldShowTrendingAfterGuide.value) {
