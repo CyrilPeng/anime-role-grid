@@ -95,9 +95,11 @@ export class CanvasGenerator {
 
         const titleHeight = isChallenge ? 250 : 160
         const padding = 60
-        const watermarkHeight = isChallenge ? 180 : 60
 
         const canvasWidth = gridWidth + (padding * 2)
+        const isNarrow = canvasWidth < 700 // Threshold for narrow layout
+        const watermarkHeight = isChallenge ? (isNarrow ? 320 : 160) : 60
+
         const canvasHeight = titleHeight + gridHeight + watermarkHeight + padding
 
         this.canvas.width = canvasWidth
@@ -166,7 +168,7 @@ export class CanvasGenerator {
         this.ctx.stroke()
 
         if (isChallenge && options.qrCodeUrl) {
-            await this.drawChallengeFooter(options.qrCodeUrl, canvasWidth, canvasHeight, padding, templateConfig?.filler, templateConfig?.creator)
+            await this.drawChallengeFooter(options.qrCodeUrl, canvasWidth, canvasHeight, padding, watermarkHeight, templateConfig?.filler, templateConfig?.creator)
         } else {
             await this.drawWatermark(canvasWidth, canvasHeight, padding)
         }
@@ -388,12 +390,15 @@ export class CanvasGenerator {
         }
     }
 
-    private async drawChallengeFooter(qrUrl: string, width: number, height: number, padding: number, filler?: string, creator?: string) {
+    private async drawChallengeFooter(qrUrl: string, width: number, height: number, padding: number, boxHeight: number, filler?: string, creator?: string) {
         const ctx = this.ctx
-        const boxHeight = 160 // Taller footer to accommodate bigger QR
+        // boxHeight passed from generate
         const boxY = height - boxHeight - padding / 2
         const boxX = padding
         const boxWidth = width - (padding * 2)
+        const isNarrow = boxHeight > 200 // Detect narrow layout based on height
+
+        const centerX = boxX + boxWidth / 2
 
         // Simple Border
         ctx.beginPath()
@@ -403,93 +408,152 @@ export class CanvasGenerator {
         ctx.strokeStyle = '#f3f4f6' // gray-100
         ctx.stroke()
 
-        // Logo Area
-        // Vertically center logo in the footer box
-        const logoY = boxY + (boxHeight - 50) / 2
         try {
             const logo = await this.loadImage('/logo.png')
-            const logoSize = 50 // Bigger Logo
-            ctx.drawImage(logo, boxX, logoY, logoSize, logoSize)
+            const qr = await this.loadImage(qrUrl)
 
-            // Text
-            ctx.textAlign = 'left'
-            ctx.textBaseline = 'middle'
-            const textX = boxX + logoSize + 20
+            const logoSize = 50
+            const qrSize = 130
 
-            // Combine Brand and Info into one line, vertically aligned with Logo
-            const centerY = logoY + logoSize / 2
+            // --- NARROW LAYOUT (Vertical Stack) ---
+            if (isNarrow) {
+                // 1. Top Section: Logo + Brand (Centered Row)
+                const topY = boxY + 50
+                ctx.font = `bold 30px ${THEME.typography.fontFamily}`
 
-            ctx.font = `bold 30px ${THEME.typography.fontFamily}`
+                const part1 = '【我推'
+                const part2 = '的'
+                const part3 = '格子】'
+                const brandWidth = ctx.measureText(part1 + part2 + part3).width
 
-            // Part 1: Brand
-            const part1 = '【我推'
-            const part2 = '的'
-            const part3 = '格子】'
+                const totalTopWidth = logoSize + 20 + brandWidth
+                const startX = centerX - totalTopWidth / 2
 
-            const w1 = ctx.measureText(part1).width
-            const w2 = ctx.measureText(part2).width
-            const w3 = ctx.measureText(part3).width
+                // Draw Logo
+                ctx.drawImage(logo, startX, topY - logoSize / 2, logoSize, logoSize)
 
-            ctx.fillStyle = THEME.colors.watermark || '#9ca3af'
-            ctx.fillText(part1, textX, centerY)
+                // Draw Brand
+                const textX = startX + logoSize + 20
+                ctx.textAlign = 'left'
+                ctx.textBaseline = 'middle'
 
-            ctx.fillStyle = THEME.colors.accent // Pink
-            ctx.fillText(part2, textX + w1, centerY)
+                ctx.fillStyle = THEME.colors.watermark || '#9ca3af'
+                ctx.fillText(part1, textX, topY)
+                ctx.fillStyle = THEME.colors.accent
+                ctx.fillText(part2, textX + ctx.measureText(part1).width, topY)
+                ctx.fillStyle = THEME.colors.watermark || '#9ca3af'
+                ctx.fillText(part3, textX + ctx.measureText(part1 + part2).width, topY)
 
-            ctx.fillStyle = THEME.colors.watermark || '#9ca3af'
-            ctx.fillText(part3, textX + w1 + w2, centerY)
+                // 2. Attribution (Centered Below)
+                let attrY = topY + 50
 
-            // Part 2: Attribution (Same Line, Same Size)
-            const hasCreator = !!creator
-            const hasFiller = !!filler
-            if (hasCreator || hasFiller) {
-                const brandWidth = w1 + w2 + w3
-                const infoX = textX + brandWidth + 30 // 30px spacing
+                const hasCreator = !!creator
+                const hasFiller = !!filler
 
-                ctx.fillStyle = '#6b7280' // gray-500
-                // Font is already 30px from above
+                if (hasCreator || hasFiller) {
+                    ctx.textAlign = 'center'
+                    ctx.fillStyle = '#6b7280'
+                    ctx.font = `bold 24px ${THEME.typography.fontFamily}`
 
-                let text = ''
-                if (hasCreator && !hasFiller) {
-                    text = `制表: ${creator}`
-                } else if (hasCreator && hasFiller) {
-                    text = `制表: ${creator}  |  填表: ${filler}`
-                } else if (!hasCreator && hasFiller) {
-                    text = `填表: ${filler}`
+                    let text = ''
+                    if (hasCreator && !hasFiller) text = `制表: ${creator}`
+                    else if (hasCreator && hasFiller) text = `制表: ${creator} | 填表: ${filler}`
+                    else if (!hasCreator && hasFiller) text = `填表: ${filler}`
+
+                    ctx.fillText(text, centerX, attrY)
                 }
 
-                ctx.fillText(text, infoX, centerY)
+                // 3. QR Code + Text (Centered Bottom)
+                const qrY = boxY + boxHeight - qrSize - 20
+
+                // Stack text next to QR if enough space, otherwise just stack QR
+                // For safety and clean look on narrow phones, let's keep QR centered
+                // and put text to the right if width permits (most phones > 350px)
+                // 1 col grid width = 420px total. 300px internal cell.
+                // 420px is enough for side-by-side QR (130) + Text.
+
+                const textBlockWidth = 140
+                const totalQRWidth = qrSize + 20 + textBlockWidth
+                const qrStartX = centerX - totalQRWidth / 2
+
+                ctx.drawImage(qr, qrStartX, qrY, qrSize, qrSize)
+
+                const textStartX = qrStartX + qrSize + 20
+                const qrCenterY = qrY + qrSize / 2
+
+                ctx.textAlign = 'left'
+                ctx.fillStyle = '#374151'
+                ctx.font = `bold 24px ${THEME.typography.fontFamily}`
+                ctx.fillText('扫码接受挑战', textStartX, qrCenterY - 16)
+
+                ctx.fillStyle = '#9ca3af'
+                ctx.font = `20px ${THEME.typography.fontFamily}`
+                ctx.fillText('长按识别二维码', textStartX, qrCenterY + 16)
+
+            }
+            // --- WIDE LAYOUT (Side-by-Side) ---
+            else {
+                // Logo Area
+                const logoY = boxY + (boxHeight - 50) / 2
+                ctx.drawImage(logo, boxX, logoY, logoSize, logoSize)
+
+                // Text
+                ctx.textAlign = 'left'
+                ctx.textBaseline = 'middle'
+                const textX = boxX + logoSize + 20
+                const centerY = logoY + logoSize / 2
+
+                ctx.font = `bold 30px ${THEME.typography.fontFamily}`
+
+                // Part 1: Brand
+                const part1 = '【我推'
+                const part2 = '的'
+                const part3 = '格子】'
+                const w1 = ctx.measureText(part1).width
+                const w2 = ctx.measureText(part2).width
+                const w3 = ctx.measureText(part3).width
+
+                ctx.fillStyle = THEME.colors.watermark || '#9ca3af'
+                ctx.fillText(part1, textX, centerY)
+                ctx.fillStyle = THEME.colors.accent
+                ctx.fillText(part2, textX + w1, centerY)
+                ctx.fillStyle = THEME.colors.watermark || '#9ca3af'
+                ctx.fillText(part3, textX + w1 + w2, centerY)
+
+                // Part 2: Attribution
+                const hasCreator = !!creator
+                const hasFiller = !!filler
+                if (hasCreator || hasFiller) {
+                    const brandWidth = w1 + w2 + w3
+                    const infoX = textX + brandWidth + 30
+                    ctx.fillStyle = '#6b7280'
+                    let text = ''
+                    if (hasCreator && !hasFiller) text = `制表: ${creator}`
+                    else if (hasCreator && hasFiller) text = `制表: ${creator}  |  填表: ${filler}`
+                    else if (!hasCreator && hasFiller) text = `填表: ${filler}`
+                    ctx.fillText(text, infoX, centerY)
+                }
+
+                // QR Area
+                const qrY = boxY + (boxHeight - qrSize) / 2
+                const qrX = boxX + boxWidth - qrSize - 10
+                ctx.drawImage(qr, qrX, qrY, qrSize, qrSize)
+
+                ctx.textAlign = 'right'
+                ctx.textBaseline = 'middle'
+                const qrCenterY = qrY + qrSize / 2
+
+                ctx.fillStyle = '#374151'
+                ctx.font = `bold 24px ${THEME.typography.fontFamily}`
+                ctx.fillText('扫码接受挑战', qrX - 25, qrCenterY - 16)
+
+                ctx.fillStyle = '#9ca3af'
+                ctx.font = `20px ${THEME.typography.fontFamily}`
+                ctx.fillText('长按识别二维码', qrX - 25, qrCenterY + 16)
             }
 
         } catch (e) {
-            console.warn('Logo failed', e)
+            console.warn('Footer draw failed', e)
         }
-
-        // QR Area (Right aligned)
-        try {
-            const qr = await this.loadImage(qrUrl)
-            const qrSize = 130 // Bigger QR as requested
-            // Center QR vertically in footer box
-            const qrY = boxY + (boxHeight - qrSize) / 2
-            const qrX = boxX + boxWidth - qrSize - 10 // Padding right
-
-            ctx.drawImage(qr, qrX, qrY, qrSize, qrSize)
-
-            // Text left of QR
-            ctx.textAlign = 'right'
-            ctx.textBaseline = 'middle'
-            // Center text relative to QR
-            const qrCenterY = qrY + qrSize / 2
-
-            // Bigger Fonts for QR Text
-            ctx.fillStyle = '#374151'
-            ctx.font = `bold 24px ${THEME.typography.fontFamily}`
-            ctx.fillText('扫码接受挑战', qrX - 25, qrCenterY - 16)
-
-            ctx.fillStyle = '#9ca3af'
-            ctx.font = `20px ${THEME.typography.fontFamily}`
-            ctx.fillText('长按识别二维码', qrX - 25, qrCenterY + 16)
-
-        } catch (e) { console.warn('QR load failed') }
     }
 }

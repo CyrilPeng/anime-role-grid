@@ -292,7 +292,7 @@ function handleVideoExport(settings: any) {
         @click="showShareModal = false"
       >
         <div 
-          class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-sm w-full transform transition-all border-2 border-[#e4007f]" 
+          class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl text-center max-w-sm w-full transform transition-all border-2 border-[#e4007f] max-h-[90vh] overflow-y-auto" 
           @click.stop
         >
           <div class="w-full mb-4 flex items-center justify-center">
