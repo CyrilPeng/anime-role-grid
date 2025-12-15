@@ -204,7 +204,8 @@ async function handleSave() {
             character: character ? {
                 name: character.name,
                 image: finalImage,
-                bangumiId: character.bangumiId,
+                // Fallback: If bangumiId is missing (old data), try to use 'id' if it's a number
+                bangumiId: character.bangumiId ?? (typeof character.id === 'number' ? character.id : undefined),
                 category: character.category,
                 subjectType: character.subjectType
             } : undefined

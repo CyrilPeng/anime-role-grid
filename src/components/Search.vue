@@ -16,6 +16,27 @@ const loading = ref(false)
 const errorMessage = ref('')
 const offset = ref(0)
 const hasMore = ref(true)
+const trendingList = shallowRef<any[]>([])
+const trendingLoading = ref(true)
+
+async function fetchTrending() {
+  trendingLoading.value = true
+  try {
+    const res = await fetch('/api/trending')
+    if (res.ok) {
+        const data = await res.json()
+        trendingList.value = data.results || []
+    }
+  } catch (e) {
+    console.warn('Failed to fetch trending:', e)
+  } finally {
+    trendingLoading.value = false
+  }
+}
+
+onMounted(() => {
+    fetchTrending()
+})
 
 const activeTab = ref<'search' | 'custom'>('search')
 const searchType = ref<'character' | 'anime' | 'manga' | 'novel' | 'game' | 'music' | 'real' | 'person'>('character')
@@ -359,6 +380,60 @@ onMounted(() => {
              </div>
           </div>
         </div>
+
+        <!-- Trending Section (Show when no keyword) -->
+        <div v-if="!keyword && activeTab === 'search'" class="mb-6">
+            <div class="flex items-center gap-2 mb-3 px-1 text-black">
+                <div class="i-carbon-fire text-[#e4007f] text-lg animate-pulse" />
+                <h3 class="font-bold text-sm">今日热门</h3>
+                <span class="text-xs text-gray-400 font-medium ml-auto">最近24小时</span>
+            </div>
+            
+            <div v-if="trendingLoading" class="flex justify-center py-8">
+                 <div i-carbon-circle-dash class="animate-spin text-2xl text-gray-300" />
+            </div>
+
+            <div v-else-if="trendingList.length > 0" class="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+                 <div
+                    v-for="item in trendingList"
+                    :key="item.id"
+                    class="break-inside-avoid group flex flex-col gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    @click="handleAdd({
+                        id: item.id,
+                        name: item.name,
+                        images: { large: item.image, medium: item.image, grid: item.image, small: item.image, common: item.image },
+                    } as any)"
+                  >
+                    <div class="w-full overflow-hidden rounded-lg bg-gray-100 relative">
+                        <!-- Rank Badge -->
+                        <div 
+                           class="absolute top-0 left-0 z-10 px-2 py-0.5 text-[10px] font-bold text-white rounded-br-lg shadow-sm"
+                           :class="trendingList.indexOf(item) < 3 ? 'bg-[#e4007f]' : 'bg-gray-400'"
+                        >
+                            #{{ trendingList.indexOf(item) + 1 }}
+                        </div>
+                        <img 
+                            :src="item.image" 
+                            class="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            referrerpolicy="no-referrer"
+                        >
+                    </div>
+                    <p class="w-full text-center text-sm font-bold text-black px-1 truncate" :title="item.name">
+                    {{ item.name }}
+                    </p>
+                    <p class="text-[10px] text-gray-400 text-center -mt-1">{{ item.count }} 人已使用</p>
+                  </div>
+            </div>
+            
+            <div v-else class="text-center py-8 text-gray-400 text-xs">
+                暂无热门数据，快去添加角色吧！
+            </div>
+            
+             <!-- Divider -->
+            <div class="h-px bg-gray-100 my-4" />
+        </div>
+
         <div v-if="searchResult.length" class="columns-2 md:columns-3 lg:columns-4 gap-4 pb-4 space-y-4">
           <div
             v-for="item in searchResult"
