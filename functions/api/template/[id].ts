@@ -19,6 +19,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             return new Response(JSON.stringify({ error: 'Template not found' }), { status: 404 });
         }
 
+        if (result && typeof result.config === 'string') {
+            try {
+                result.config = JSON.parse(result.config as string);
+            } catch (e) {
+                console.error('Failed to parse config JSON', e);
+            }
+        }
+
         return new Response(JSON.stringify(result), {
             headers: {
                 'Content-Type': 'application/json',
