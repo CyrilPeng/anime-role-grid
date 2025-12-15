@@ -1,10 +1,9 @@
-<script setup lang="ts">
 import { ref, reactive, watch, nextTick } from 'vue'
 import Header from '~/components/Header.vue'
 import Footer from '~/components/Footer.vue'
 import Grid from '~/components/Grid.vue'
 import * as QRCode from 'qrcode'
-import html2canvas from 'html2canvas'
+import { exportGridAsImage } from '~/logic/export' // Use existing logic
 import type { GridItem } from '~/types'
 
 console.log('CreateTemplate loaded')
@@ -42,6 +41,12 @@ function handleUpdateLabel(payload: { index: number, label: string }) {
   }
 }
 
+const captureData = reactive({
+  title: '',
+  qr: '',
+  id: ''
+})
+
 // Generate QR and Capture
 async function generateChallengeCard() {
   if (!title.value) return alert('请先输入一个响亮的标题！')
@@ -67,29 +72,23 @@ async function generateChallengeCard() {
     
     // 2. Generate QR Code for this ID
     const shareUrl = `${window.location.origin}/t/${data.id}`
-    const qrDataUrl = await QRCode.toDataURL(shareUrl, { margin: 1, width: 120 })
+    const qrDataUrl = await QRCode.toDataURL(shareUrl, { margin: 1, width: 200 })
     
-    // 3. Render Capture Area
-    // Wait for Vue to render the hidden elements
-    captureData.title = title.value
-    captureData.qr = qrDataUrl
     captureData.id = data.id 
-    step.value = 2 // Move to step 2 (which shows success modal, but we need meaningful image first)
-    
-    await nextTick()
-    await new Promise(r => setTimeout(r, 500)) // Wait for images/fonts
 
-    // 4. Html2Canvas
-    const element = document.getElementById('viral-capture-area')
-    if (!element) throw new Error('Capture element not found')
-    
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff'
-    })
-    
-    generatedImage.value = canvas.toDataURL('image/png')
+    // 3. Generate Image via CanvasGenerator (No HTML2Canvas)
+    generatedImage.value = await exportGridAsImage(
+        list.value, 
+        'custom_viral', // Special ID 
+        title.value, 
+        'challenge-card', 
+        false, 
+        { cols: cols.value }, // Template Config
+        qrDataUrl, // QR Code
+        'challenge' // Variant
+    )
+
+    step.value = 2
     
   } catch (e: any) {
     alert('生成失败: ' + e.message)
@@ -98,12 +97,6 @@ async function generateChallengeCard() {
     loading.value = false
   }
 }
-
-const captureData = reactive({
-  title: '',
-  qr: '',
-  id: ''
-})
 
 function downloadImage() {
   const link = document.createElement('a')
@@ -202,57 +195,8 @@ function downloadImage() {
            </button>
        </div>
     </div>
+    <!-- Removed Hidden Capture Area -->
 
-    <!-- Hidden Capture Area (Where the magic happens) -->
-    <div class="fixed left-[9999px] top-0">
-        <div id="viral-capture-area" class="w-[800px] bg-white p-8 flex flex-col items-center gap-6 relative overflow-hidden">
-            <!-- Decorative Backgrounds -->
-            <div class="absolute top-0 right-0 w-64 h-64 bg-pink-50 rounded-full blur-3xl -z-10 opacity-50"></div>
-            <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-50 rounded-full blur-3xl -z-10 opacity-50"></div>
-
-            <!-- Header -->
-            <div class="text-center space-y-2 mt-4">
-                 <div class="inline-block px-4 py-1 rounded-full bg-black text-white font-bold text-lg tracking-widest">CHALLENGE</div>
-                 <h1 class="text-5xl font-bold text-gray-900 tracking-wider" style="font-family: 'Noto Serif SC', serif;">{{ captureData.title }}</h1>
-                 <div class="w-32 h-1 bg-[#e4007f] rounded-full mx-auto"></div>
-            </div>
-
-            <!-- Grid -->
-            <div class="w-full px-8 py-4">
-               <!-- We use Grid component here in non-interactive mode -->
-               <Grid 
-                  :list="list" 
-                  :cols="cols"
-                  :forExport="true"
-                  :title="''"
-                  :customTitle="''"
-                  :defaultTitle="''"
-               />
-               <!-- Note: We clear titles in Grid because we render them externally for better control -->
-            </div>
-
-            <!-- Footer -->
-            <div class="w-full bg-gray-50 rounded-2xl p-6 flex items-center justify-between border-2 border-gray-100 mb-4">
-                <div class="flex items-center gap-4">
-                    <img src="/logo.png" class="w-16 h-16 object-contain" />
-                    <div class="flex flex-col">
-                        <span class="text-2xl font-bold text-gray-900">我推<span class="text-[#e4007f]">的</span>格子</span>
-                        <span class="text-sm text-gray-500 font-bold tracking-widest">ANIME ROLE GRID</span>
-                    </div>
-                </div>
-                
-                <div class="flex items-center gap-4">
-                    <div class="flex flex-col items-end">
-                        <span class="text-sm font-bold text-gray-900">扫码接受挑战</span>
-                        <span class="text-xs text-gray-400">长按识别二维码</span>
-                    </div>
-                    <img :src="captureData.qr" class="w-20 h-20 bg-white p-1 rounded-lg shadow-sm border border-gray-200" />
-                </div>
-            </div>
-            
-            <div class="text-xs text-gray-300 font-mono pb-2">Generated by Grid Generator</div>
-        </div>
-    </div>
 
     <Footer />
   </div>

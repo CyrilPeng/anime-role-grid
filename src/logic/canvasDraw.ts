@@ -15,6 +15,8 @@ interface DrawOptions {
     customTitle: string
     showName?: boolean
     templateConfig?: { cols: number }
+    qrCodeUrl?: string
+    variant?: 'standard' | 'challenge'
 }
 
 export class CanvasGenerator {
@@ -86,11 +88,13 @@ export class CanvasGenerator {
         const nameHeight = options.showName ? LABEL_HEIGHT : 0
         const actualCellHeight = CELL_HEIGHT + nameHeight
 
+        const isChallenge = options.variant === 'challenge'
+
         const gridHeight = rows * actualCellHeight
 
-        const titleHeight = 160
+        const titleHeight = isChallenge ? 250 : 160
         const padding = 60
-        const watermarkHeight = 60
+        const watermarkHeight = isChallenge ? 180 : 60
 
         const canvasWidth = gridWidth + (padding * 2)
         const canvasHeight = titleHeight + gridHeight + watermarkHeight + padding
@@ -98,10 +102,25 @@ export class CanvasGenerator {
         this.canvas.width = canvasWidth
         this.canvas.height = canvasHeight
 
-        this.ctx.fillStyle = THEME.colors.bg
+        // Background
+        this.ctx.fillStyle = isChallenge ? '#fafafa' : THEME.colors.bg
         this.ctx.fillRect(0, 0, canvasWidth, canvasHeight)
 
-        this.drawTitle(customTitle, defaultTitle, templateTitle, canvasWidth, titleHeight)
+        // Decor for challenge
+        if (isChallenge) {
+            // Subtle grad decoration
+            const grad = this.ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight)
+            grad.addColorStop(0, '#fff5f9') // pink-ish
+            grad.addColorStop(1, '#f9f5ff') // purple-ish
+            this.ctx.fillStyle = grad
+            this.ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+        }
+
+        if (isChallenge) {
+            this.drawChallengeHeader(customTitle, canvasWidth, titleHeight)
+        } else {
+            this.drawTitle(customTitle, defaultTitle, templateTitle, canvasWidth, titleHeight)
+        }
 
         const images = await Promise.all(
             list.map(item => item.character ? this.loadImage(this.getImageUrl(item.character.image)) : Promise.resolve(null))
@@ -148,7 +167,13 @@ export class CanvasGenerator {
         this.ctx.strokeStyle = THEME.colors.border
         this.ctx.stroke()
 
-        await this.drawWatermark(canvasWidth, canvasHeight, padding)
+        this.ctx.stroke()
+
+        if (isChallenge && options.qrCodeUrl) {
+            await this.drawChallengeFooter(options.qrCodeUrl, canvasWidth, canvasHeight, padding)
+        } else {
+            await this.drawWatermark(canvasWidth, canvasHeight, padding)
+        }
 
         return this.canvas.toDataURL('image/png')
     }
@@ -337,5 +362,95 @@ export class CanvasGenerator {
         }
 
         this.ctx.restore()
+    }
+
+    private drawChallengeHeader(title: string, width: number, height: number) {
+        const centerX = width / 2
+        const y = height / 2
+
+        // Tag
+        this.ctx.save()
+        this.ctx.font = `bold 24px sans-serif`
+        this.ctx.fillStyle = '#000000'
+        this.ctx.textAlign = 'center'
+        this.ctx.textBaseline = 'bottom'
+        this.ctx.fillText('CHALLENGE', centerX, y - 50)
+
+        // Title
+        this.ctx.font = `bold 80px "Noto Serif SC", serif`
+        this.ctx.fillStyle = '#111827' // gray-900
+        this.ctx.textBaseline = 'middle'
+        this.ctx.shadowColor = 'rgba(0,0,0,0.1)'
+        this.ctx.shadowBlur = 10
+        this.ctx.fillText(title, centerX, y + 10)
+        this.ctx.shadowBlur = 0
+
+        // Decorative Line
+        this.ctx.fillStyle = THEME.colors.accent // pink
+        this.ctx.beginPath()
+        this.ctx.roundRect(centerX - 60, y + 60, 120, 6, 3)
+        this.ctx.fill()
+        this.ctx.restore()
+    }
+
+    private async drawChallengeFooter(qrUrl: string, width: number, height: number, padding: number) {
+        const ctx = this.ctx
+        const boxHeight = 140
+        const boxY = height - boxHeight - padding / 2
+        const boxX = padding
+        const boxWidth = width - (padding * 2)
+
+        // White box background
+        ctx.save()
+        ctx.shadowColor = 'rgba(0,0,0,0.05)'
+        ctx.shadowBlur = 15
+        ctx.shadowOffsetY = 5
+        ctx.fillStyle = '#ffffff'
+        ctx.beginPath()
+        ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 20)
+        ctx.fill()
+        ctx.restore()
+
+        // Logo
+        try {
+            const logo = await this.loadImage('/logo.png')
+            const logoSize = 80
+            const logoY = boxY + (boxHeight - logoSize) / 2
+            ctx.drawImage(logo, boxX + 40, logoY, logoSize, logoSize)
+
+            // Text next to Logo
+            ctx.fillStyle = '#111827'
+            ctx.font = 'bold 36px sans-serif'
+            ctx.textAlign = 'left'
+            ctx.textBaseline = 'middle'
+            ctx.fillText('我推的格子', boxX + 140, logoY + logoSize / 2 - 15)
+
+            ctx.fillStyle = THEME.colors.accent
+            ctx.font = 'bold 18px sans-serif'
+            ctx.fillText('ANIME ROLE GRID', boxX + 140, logoY + logoSize / 2 + 15)
+
+        } catch (e) { console.warn('Logo load failed') }
+
+        // QR Code
+        try {
+            const qr = await this.loadImage(qrUrl)
+            const qrSize = 100
+            const qrY = boxY + (boxHeight - qrSize) / 2
+            const qrX = boxX + boxWidth - qrSize - 40
+
+            ctx.drawImage(qr, qrX, qrY, qrSize, qrSize)
+
+            // Scan Text
+            ctx.textAlign = 'right'
+            ctx.textBaseline = 'middle'
+            ctx.fillStyle = '#374151'
+            ctx.font = 'bold 20px sans-serif'
+            ctx.fillText('扫码接受挑战', qrX - 20, qrY + qrSize / 2 - 12)
+
+            ctx.fillStyle = '#9ca3af'
+            ctx.font = '16px sans-serif'
+            ctx.fillText('长按识别二维码', qrX - 20, qrY + qrSize / 2 + 12)
+
+        } catch (e) { console.warn('QR load failed') }
     }
 }
