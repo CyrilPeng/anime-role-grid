@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import Header from '~/components/Header.vue'
 import Footer from '~/components/Footer.vue'
 import Grid from '~/components/Grid.vue'
@@ -9,6 +10,7 @@ import type { GridItem } from '~/types'
 
 console.log('CreateTemplate loaded')
 
+const router = useRouter()
 const mainTitle = ref('我的二次元成分表')
 const templateName = ref('')
 const creatorName = ref('')
@@ -61,12 +63,13 @@ async function generateChallengeCard() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: templateName.value,
+        title: mainTitle.value || '我的二次元成分表', // Fix: Use Main Title as DB Title
         type: 'grid',
         config: {
           cols: cols.value,
           items: list.value.map(i => i.label),
-          creator: creatorName.value
+          creator: creatorName.value,
+          templateName: templateName.value // Fix: Save template name in config
         }
       })
     })
@@ -168,9 +171,28 @@ async function copyLink() {
     <!-- Step 1: Editor -->
     <div v-if="step === 1" class="container mx-auto max-w-4xl px-4">
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
-        <h1 class="text-3xl font-bold mb-8 text-center flex items-center justify-center gap-2">
-           <div i-carbon-edit class="text-[#e4007f]" />
-           <span>出题器</span>
+        <h1 class="text-3xl font-bold mb-8 text-center flex flex-col md:flex-row items-center justify-center gap-4 relative">
+            <button 
+                @click="router.push('/')"
+                class="absolute left-0 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-[#e4007f] hover:bg-gray-100 rounded-full transition-all md:flex hidden"
+                title="返回首页"
+            >
+                <div i-carbon-arrow-left class="text-2xl" />
+            </button>
+           
+           <div class="flex items-center gap-2">
+               <div i-carbon-edit class="text-[#e4007f]" />
+               <span>制表器</span>
+           </div>
+           
+           <!-- Mobile Back Button -->
+           <button 
+                @click="router.push('/')"
+                class="md:hidden text-sm text-gray-500 flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full"
+            >
+                <div i-carbon-arrow-left />
+                返回首页
+            </button>
         </h1>
         
         <!-- Controls -->
@@ -197,7 +219,7 @@ async function copyLink() {
               </div>
 
               <div>
-                <label class="block text-sm font-bold mb-2 text-gray-600">② 出题人 (可选)</label>
+                <label class="block text-sm font-bold mb-2 text-gray-600">② 制表人 (可选)</label>
                 <input 
                   v-model="creatorName" 
                   type="text" 

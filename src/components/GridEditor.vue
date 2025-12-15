@@ -18,6 +18,7 @@ const props = defineProps<{
       cols: number
       items: string[]
       creator?: string
+      templateName?: string
     }
   } | null
   loading?: boolean
@@ -121,7 +122,7 @@ async function handleSave() {
         exportConfig,
         undefined, // qrCode
         props.mode === 'custom' ? 'challenge' : 'standard',
-        props.templateData?.title // templateName
+        props.templateData?.config?.templateName || props.templateData?.title // templateName (Prefer config, fallback to title)
     )
     showShareModal.value = true
   } catch (e: any) {
@@ -177,6 +178,17 @@ function handleVideoExport(settings: any) {
                  <div class="i-carbon-edit text-sm" />
                  <span class="text-xs font-bold">小贴士：表格上方标题、格子下方标签文字，都是可以自定义修改的哦！</span>
             </div>
+
+             <!-- Navigation for Custom Mode -->
+             <div v-if="mode === 'custom'" class="w-full flex justify-start pl-2 mb-2">
+                 <button 
+                    @click="router.push('/')" 
+                    class="flex items-center gap-1 text-gray-500 hover:text-[#e4007f] transition-colors py-1 px-3 rounded-lg hover:bg-gray-100"
+                 >
+                    <div i-carbon-home class="text-lg" />
+                    <span class="font-bold text-sm">返回官方模版</span>
+                 </button>
+             </div>
 
             <Grid 
                 id="grid-capture-target"
@@ -314,6 +326,25 @@ function handleVideoExport(settings: any) {
             >
                 关闭
             </button>
+            
+            <div class="pt-2 border-t border-gray-100 mt-2">
+                <p class="text-xs text-gray-400 mb-2">觉得好玩？你也可以制作一份考考朋友！</p>
+                <button 
+                  @click="router.push('/create')" 
+                  class="w-full py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1 mb-3"
+                >
+                  <div i-carbon-edit />
+                  <span>我也要制表</span>
+                </button>
+                
+                <a 
+                  href="https://space.bilibili.com/282213437"
+                  target="_blank"
+                  class="block text-xs text-gray-400 hover:text-pink-500 transition-colors"
+                >
+                   关注开发者 B站: <span class="underline">@程序员小山与bug</span>
+                </a>
+            </div>
           </div>
         </div>
       </div>
