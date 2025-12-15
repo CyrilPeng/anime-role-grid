@@ -14,7 +14,7 @@ interface DrawOptions {
     templateId: string
     customTitle: string
     showName?: boolean
-    templateConfig?: { cols: number }
+    templateConfig?: { cols: number, creator?: string, filler?: string }
     qrCodeUrl?: string
     variant?: 'standard' | 'challenge'
 }
@@ -107,7 +107,6 @@ export class CanvasGenerator {
         this.ctx.fillRect(0, 0, canvasWidth, canvasHeight)
 
         // Decor for challenge
-        // Decor for challenge
         if (isChallenge) {
             // Clean white background for consistency
             this.ctx.fillStyle = '#ffffff'
@@ -115,7 +114,7 @@ export class CanvasGenerator {
         }
 
         if (isChallenge) {
-            this.drawChallengeHeader(customTitle, canvasWidth, titleHeight)
+            this.drawChallengeHeader(customTitle, canvasWidth, titleHeight, templateConfig?.creator)
         } else {
             this.drawTitle(customTitle, defaultTitle, templateTitle, canvasWidth, titleHeight)
         }
@@ -165,10 +164,8 @@ export class CanvasGenerator {
         this.ctx.strokeStyle = THEME.colors.border
         this.ctx.stroke()
 
-        this.ctx.stroke()
-
         if (isChallenge && options.qrCodeUrl) {
-            await this.drawChallengeFooter(options.qrCodeUrl, canvasWidth, canvasHeight, padding)
+            await this.drawChallengeFooter(options.qrCodeUrl, canvasWidth, canvasHeight, padding, templateConfig?.filler)
         } else {
             await this.drawWatermark(canvasWidth, canvasHeight, padding)
         }
@@ -232,18 +229,12 @@ export class CanvasGenerator {
             this.ctx.fillStyle = THEME.colors.bg
             this.ctx.fillRect(x, nameY, CELL_WIDTH, LABEL_HEIGHT)
 
-            // Top border of name area (which is bottom of image)
-            // Will be drawn by borders function or implied?
-            // Actually, we expect the background to be white so it's fine.
-
             this.ctx.save()
             this.ctx.beginPath()
             this.ctx.rect(x, nameY, CELL_WIDTH, LABEL_HEIGHT)
             this.ctx.clip()
 
             this.ctx.fillStyle = THEME.colors.text
-            // Name font size slightly smaller? Or same? 
-            // Logic: Label is 32px. Name should be similar.
             let fontSize = 28
             this.ctx.font = `bold ${fontSize}px ${THEME.typography.fontFamily}`
             this.ctx.textAlign = 'center'
@@ -362,7 +353,7 @@ export class CanvasGenerator {
         this.ctx.restore()
     }
 
-    private drawChallengeHeader(title: string, width: number, height: number) {
+    private drawChallengeHeader(title: string, width: number, height: number, creator?: string) {
         const centerX = width / 2
         const y = height / 2
 
@@ -383,15 +374,22 @@ export class CanvasGenerator {
         this.ctx.fillText(title, centerX, y + 10)
         this.ctx.shadowBlur = 0
 
+        // Creator Name
+        if (creator) {
+            this.ctx.font = `bold 20px sans-serif`
+            this.ctx.fillStyle = '#6b7280' // gray-500
+            this.ctx.fillText(`出题人: ${creator}`, centerX, y + 55)
+        }
+
         // Decorative Line
         this.ctx.fillStyle = THEME.colors.accent // pink
         this.ctx.beginPath()
-        this.ctx.roundRect(centerX - 60, y + 60, 120, 6, 3)
+        this.ctx.roundRect(centerX - 60, y + 70, 120, 6, 3)
         this.ctx.fill()
         this.ctx.restore()
     }
 
-    private async drawChallengeFooter(qrUrl: string, width: number, height: number, padding: number) {
+    private async drawChallengeFooter(qrUrl: string, width: number, height: number, padding: number, filler?: string) {
         const ctx = this.ctx
         const boxHeight = 120 // Slightly smaller footer
         const boxY = height - boxHeight - padding / 2
@@ -422,12 +420,14 @@ export class CanvasGenerator {
             // "我推的格子"
             ctx.fillStyle = THEME.colors.text
             ctx.font = `bold 28px ${THEME.typography.fontFamily}`
-            ctx.fillText('我推的格子', textX, logoY + logoSize / 2)
+            ctx.fillText('我推的格子', textX, logoY + logoSize / 2 - (filler ? 10 : 0))
 
-            // "ANIME ROLE GRID"
-            ctx.fillStyle = THEME.colors.accent
-            ctx.font = `bold 14px ${THEME.typography.fontFamily}`
-            // ctx.fillText('ANIME ROLE GRID', textX, logoY + logoSize/2 + 20) // Optional, maybe too cluttered
+            // Filler Name
+            if (filler) {
+                ctx.fillStyle = '#6b7280' // gray-500
+                ctx.font = `bold 16px ${THEME.typography.fontFamily}`
+                ctx.fillText(`填表人: ${filler}`, textX, logoY + logoSize / 2 + 20)
+            }
 
         } catch (e) {
             console.warn('Logo failed', e)

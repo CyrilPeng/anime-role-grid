@@ -24,6 +24,7 @@ const templateData = ref<{
   config: {
     cols: number
     items: string[]
+    creator?: string
   }
 } | null>(null)
 
@@ -36,25 +37,37 @@ onMounted(async () => {
     // Init Storage
     if (templateData.value) {
         customTitle.value = templateData.value.title
+        // IMPORTANT: Reset list completely first to avoid pollution from previous larger templates
+        list.value = [] 
+        
         // Init List
         list.value = templateData.value.config.items.map(label => ({
             label,
             character: undefined
         }))
-        // Set ID to generic 'custom' to avoid template logic errors, 
-        // or we could use the actual ID if we update storage logic.
-        // For now, let's keep currentTemplateId as is (it might default to standard), 
-        // but Grid uses passed props mostly.
+        // Set ID to generic 'custom'
         currentTemplateId.value = 'custom' 
     }
   } catch (e: any) {
     console.error(e)
     error.value = e.message
-    // Using alert to show detailed error on mobile for debugging
     alert(`加载出错: ${e.name}: ${e.message}\n${e.stack || ''}`)
   } finally {
     loading.value = false
   }
+})
+
+import { onUnmounted } from 'vue'
+import { TEMPLATES } from '~/logic/templates'
+
+onUnmounted(() => {
+    // Reset to default template to avoid pollution
+    if (currentTemplateId.value === 'custom') {
+        const defaultId = TEMPLATES[0]?.id || '2024_general-anime'
+        currentTemplateId.value = defaultId
+    }
+    customTitle.value = ''
+    // list.value = [] // Optional: clear list? Maybe safer not to if user goes back?
 })
 
 // Reuse Logic
@@ -64,6 +77,7 @@ const showCharacterName = ref(false)
 const currentSlotIndex = ref<number | null>(null)
 const saving = ref(false)
 const generatedImage = ref('')
+const fillerName = ref('')
 const canShare = (typeof navigator !== 'undefined' && 'share' in navigator)
 
 function handleSelectSlot(index: number) {
@@ -154,13 +168,26 @@ function handleVideoExport(settings: any) {
                网友自制模版
            </div>
            <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-600">{{ templateData?.title }}</h1>
+           
+           <div v-if="templateData?.config.creator" class="text-sm text-gray-400 mt-1 font-bold">
+               出题人: {{ templateData.config.creator }}
+           </div>
+
+           <!-- Filler Name Input -->
+           <div class="mt-4 flex justify-center">
+               <input 
+                 v-model="fillerName" 
+                 placeholder="填表人昵称 (可选)" 
+                 class="text-center bg-transparent border-b border-gray-300 focus:border-pink-500 outline-none py-1 text-gray-600 font-bold placeholder-gray-300"
+               />
+           </div>
        </div>
 
       <div class="relative w-full"> 
           <Grid 
             id="grid-capture-target"
             :list="list" 
-            :cols="templateData?.config.cols || 3"
+            :cols="Number(templateData?.config.cols) || 3"
             :title="''"
             :default-title="templateData?.title"
             v-model:customTitle="customTitle"

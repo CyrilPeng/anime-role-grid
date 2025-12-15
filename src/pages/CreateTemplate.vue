@@ -10,6 +10,7 @@ import type { GridItem } from '~/types'
 console.log('CreateTemplate loaded')
 
 const title = ref('')
+const creatorName = ref('')
 const cols = ref(4)
 const rowCount = ref(3) // Virtual helper
 const list = ref<GridItem[]>([])
@@ -63,7 +64,8 @@ async function generateChallengeCard() {
         type: 'grid',
         config: {
           cols: cols.value,
-          items: list.value.map(i => i.label)
+          items: list.value.map(i => i.label),
+          creator: creatorName.value
         }
       })
     })
@@ -112,12 +114,17 @@ const shareLink = computed(() => {
   return `${window.location.origin}/t/${captureData.id}`
 })
 
-function copyLink() {
+async function copyLink() {
   const url = shareLink.value
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(url)
-    copied.value = true
-    setTimeout(() => copied.value = false, 2000)
+    try {
+      await navigator.clipboard.writeText(url)
+      copied.value = true
+      setTimeout(() => copied.value = false, 2000)
+    } catch (err) {
+      console.error('Copy failed', err)
+      alert('复制失败，请手动复制')
+    }
   } else {
     alert('请手动复制链接')
   }
@@ -145,6 +152,16 @@ function copyLink() {
                   v-model="title" 
                   type="text" 
                   placeholder="例如：我的二次元成分表"
+                  class="w-full text-lg font-bold border-b-2 border-gray-200 focus:border-[#e4007f] outline-none py-2 bg-transparent transition-colors placeholder-gray-300"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-bold mb-2 text-gray-600">② 出题人 (可选)</label>
+                <input 
+                  v-model="creatorName" 
+                  type="text" 
+                  placeholder="留下你的大名"
                   class="w-full text-lg font-bold border-b-2 border-gray-200 focus:border-[#e4007f] outline-none py-2 bg-transparent transition-colors placeholder-gray-300"
                 />
               </div>
