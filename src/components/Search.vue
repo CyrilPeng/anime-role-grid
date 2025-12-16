@@ -402,7 +402,7 @@ onMounted(() => {
                         :class="activePeriod === p ? 'bg-white text-[#e4007f] shadow-sm' : 'text-gray-500 hover:text-gray-700'"
                         @click="activePeriod = p as any"
                     >
-                        {{ p === '24h' ? '1日榜' : p === 'week' ? '本周' : '总榜' }}
+                        {{ p === '24h' ? '日榜' : p === 'week' ? '本周' : '总榜' }}
                     </button>
                 </div>
             </div>
