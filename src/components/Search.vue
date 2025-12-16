@@ -396,13 +396,13 @@ onMounted(() => {
                 <!-- Time Period Tabs -->
                 <div class="flex bg-gray-100 rounded-lg p-0.5">
                     <button 
-                        v-for="p in ['12h', 'week', 'all']" 
+                        v-for="p in ['24h', 'week', 'all']" 
                         :key="p"
                         class="px-3 py-1 text-xs font-bold rounded-md transition-all"
                         :class="activePeriod === p ? 'bg-white text-[#e4007f] shadow-sm' : 'text-gray-500 hover:text-gray-700'"
                         @click="activePeriod = p as any"
                     >
-                        {{ p === '12h' ? '12小时' : p === 'week' ? '本周' : '总榜' }}
+                        {{ p === '24h' ? '1日榜' : p === 'week' ? '本周' : '总榜' }}
                     </button>
                 </div>
             </div>
@@ -447,7 +447,6 @@ onMounted(() => {
                             <!-- Name Overlay -->
                             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 pt-8">
                                 <p class="text-white text-sm font-bold truncate text-center">{{ item.name }}</p>
-                                <p class="text-white/80 text-[10px] text-center font-medium">{{ item.count }} 人PICK</p>
                             </div>
                          </div>
                       </div>
