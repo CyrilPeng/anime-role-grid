@@ -123,7 +123,8 @@ async function handleSave() {
     }
 
     // Determine titles
-    const effectiveTitle = props.customTitle || currentConfig.value?.templateName || currentTitle.value
+    // Template Name (Subtitle) - Should NOT use customTitle
+    const templateName = currentConfig.value?.templateName || currentTitle.value
 
     generatedImage.value = await exportGridAsImage(
         currentList.value, 
@@ -134,7 +135,7 @@ async function handleSave() {
         exportConfig,
         undefined, // qrCode
         modeIsCustom.value ? 'challenge' : 'standard',
-        effectiveTitle
+        templateName
     )
     showShareModal.value = true
   } catch (e: any) {
