@@ -62,6 +62,17 @@ onUnmounted(() => {
             :error="error"
         >
             <template #extra-actions>
+                 <!-- Voting Tip -->
+                 <div class="w-full bg-pink-50 border border-pink-100 rounded-lg p-3 mb-4 flex items-center gap-3 animate-pulse-slow">
+                     <div class="p-1.5 bg-[#e4007f] rounded-full text-white shrink-0">
+                         <div class="i-carbon-thumbs-up text-sm" />
+                     </div>
+                     <div class="flex-1">
+                         <div class="text-xs font-bold text-[#e4007f]">应援小贴士:</div>
+                         <div class="text-[10px] text-gray-500 font-bold">点击<span class="mx-0.5 text-[#e4007f]">“保存并生成图片”</span>即可自动为你的真爱投出一票！</div>
+                     </div>
+                 </div>
+
                  <!-- Guide Buttons -->
                  <div class="flex flex-col gap-2 mt-1 w-full items-center">
                     <div class="flex gap-4">

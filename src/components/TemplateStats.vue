@@ -84,15 +84,15 @@ onMounted(() => {
     </div>
 
     <!-- Rules / Disclaimer -->
-    <div class="mb-5 px-1 py-2 rounded border border-dashed border-gray-100 bg-gray-50/50">
+    <div class="mb-5 px-3 py-2 rounded-lg border border-gray-100 bg-gray-50/50">
         <div class="flex flex-col gap-1 text-[10px] text-gray-400 leading-relaxed">
-            <div class="flex items-start gap-1.5">
-                <div i-carbon-information class="shrink-0 mt-0.5" />
-                <span>统计规则：基于设备指纹自动去重，同一用户多次提交仅计算一票。</span>
+            <div class="flex items-start gap-2">
+                <div class="bg-gray-200 text-gray-600 px-1 rounded text-[9px] font-bold mt-0.5">BETA</div>
+                <span>本功能为测试版，防刷票机制较弱 (Do not take it seriously)。</span>
             </div>
-            <div class="flex items-start gap-1.5">
-                <div i-carbon-face-wink class="shrink-0 mt-0.5" />
-                <span>食用指南：数据实时更新，仅供娱乐看个乐呵，请勿刷票或过于较真哦~</span>
+            <div class="flex items-start gap-1.5 pl-1">
+                <div i-carbon-information class="shrink-0 mt-0.5" />
+                <span>仅基于简单的设备指纹去重，大家看个乐呵就好，请勿刷票哦~</span>
             </div>
         </div>
     </div>

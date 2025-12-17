@@ -121,7 +121,7 @@ export const api = {
 
     async getTemplateStats(templateId: string, period: '24h' | 'week' | 'all' = 'all') {
         const res = await fetch(`/api/stats/${templateId}?period=${period}`)
-        if (!res.ok) throw new Error('Failed to load stats')
+        if (!res.ok) throw new Error(`Failed to load stats: ${res.status} ${res.statusText}`)
         return res.json()
     }
 }

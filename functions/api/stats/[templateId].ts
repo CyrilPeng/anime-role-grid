@@ -60,9 +60,7 @@ async function updateStats(env: Env, templateId: string, period: string) {
     FROM save_items i
     JOIN saves s ON i.save_id = s.id
     WHERE s.template_id = ? 
-      AND i.bangumi_id IS NOT NULL 
-      AND i.bangumi_id != 0
-    GROUP BY i.slot_label, i.bangumi_id
+    GROUP BY i.slot_label, i.character_name
     HAVING vote_count > 0
     ORDER BY i.slot_label, vote_count DESC
   `
