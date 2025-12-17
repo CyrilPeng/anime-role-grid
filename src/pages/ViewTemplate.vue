@@ -6,6 +6,7 @@ import Footer from '~/components/Footer.vue'
 import GridEditor from '~/components/GridEditor.vue'
 import GuideModal from '~/components/GuideModal.vue'
 import FirstTimeGuide from '~/components/FirstTimeGuide.vue'
+import TemplateStats from '~/components/TemplateStats.vue' // Switched component
 
 import { useGridStore } from '~/stores/gridStore'
 
@@ -109,6 +110,7 @@ onUnmounted(() => {
                 </div>
             </template>
         </GridEditor>
+        <TemplateStats />
     </div>
     
     <Footer />

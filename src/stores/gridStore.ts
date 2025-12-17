@@ -1,6 +1,7 @@
+
 import { createGlobalState, useStorage } from '@vueuse/core'
 import { ref, computed } from 'vue'
-import type { GridItem } from '~/types/grid'
+import type { GridItem, StatsResponse } from '~/types/grid'
 import { api } from '~/services/api'
 import { TEMPLATES } from '~/logic/templates'
 
@@ -132,6 +133,62 @@ export const useGridStore = createGlobalState(() => {
         })
     }
 
+    const stats = ref<StatsResponse | null>(null)
+    const statsLoading = ref(false)
+    const statsError = ref<string | null>(null)
+    let abortController: AbortController | null = null
+
+    async function loadStats(period: '24h' | 'week' | 'all' = 'all') {
+        // 1. Cancel previous request if any
+        if (abortController) {
+            abortController.abort()
+            abortController = null
+        }
+
+        // 2. Validation
+        if (!currentTemplateId.value) {
+            console.warn('[GridStore] No currentTemplateId, aborting')
+            return
+        }
+
+        // 3. Reset State
+        statsLoading.value = true
+        statsError.value = null
+
+        // 4. Create new Controller
+        abortController = new AbortController()
+        const signal = abortController.signal
+
+        try {
+            console.log('[GridStore] Loading stats...', { id: currentTemplateId.value })
+
+            // 5. Race Condition: API Call vs Timeout (8s)
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('请求超时 (8s)')), 8000)
+            )
+
+            // Note: api.getTemplateStats needs to support signal ideally, but for now we race the result
+            // Since our fetch wrapper doesn't support signal yet, we just ignore the result on timeout
+            const apiPromise = api.getTemplateStats(currentTemplateId.value, period)
+
+            const res = await Promise.race([apiPromise, timeoutPromise]) as StatsResponse
+
+            if (signal.aborted) return // Ignore if cancelled
+
+            console.log('[GridStore] Stats loaded', res)
+            stats.value = res
+        } catch (e: any) {
+            if (signal.aborted) return
+            console.error('[GridStore] loadStats failed', e)
+            statsError.value = e.message || '加载失败'
+        } finally {
+            if (!signal.aborted) {
+                statsLoading.value = false
+                abortController = null
+            }
+        }
+    }
+
     return {
         // State
         currentTemplateId,
@@ -141,10 +198,15 @@ export const useGridStore = createGlobalState(() => {
         isLoading,
         error,
         currentList,
+        stats, // NEW
+        statsLoading, // NEW
+        statsError, // NEW
 
         // Actions
         loadTemplate,
         updateItem,
-        saveToCloud
+        saveToCloud,
+        loadStats // NEW
     }
 })
+

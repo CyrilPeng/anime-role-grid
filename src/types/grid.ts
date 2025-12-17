@@ -79,3 +79,12 @@ export interface VotePayload {
     characterName: string
     characterId?: number | string
 }
+
+export interface StatsResponse {
+    [slotLabel: string]: Array<{
+        name: string
+        id: number
+        image: string
+        count: number
+    }>
+}

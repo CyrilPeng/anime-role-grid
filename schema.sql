@@ -1,9 +1,11 @@
 -- MASTER SCHEMA
 -- Combined from base + 0001_add_analytics_columns + 0002_add_custom_templates
+-- + 0003_add_statistics_cache
 
 DROP TABLE IF EXISTS save_items;
 DROP TABLE IF EXISTS saves;
 DROP TABLE IF EXISTS custom_templates;
+DROP TABLE IF EXISTS statistics_cache;
 
 -- 1. SAVES TABLE
 CREATE TABLE saves (
@@ -43,6 +45,15 @@ CREATE TABLE custom_templates (
   created_at INTEGER DEFAULT (strftime('%s', 'now'))
 );
 
+-- 4. STATISTICS CACHE TABLE (from 0003 - Party War Strategy)
+CREATE TABLE statistics_cache (
+    template_id TEXT,
+    period TEXT, -- '24h', 'week', 'all'
+    data JSON,   -- Pre-calculated stats (Top lists per slot)
+    updated_at INTEGER,
+    PRIMARY KEY (template_id, period)
+);
+
 -- INDEXES
 CREATE INDEX idx_saves_template ON saves(template_id);
 CREATE INDEX idx_saves_user ON saves(user_hash);
@@ -51,3 +62,4 @@ CREATE INDEX idx_items_label ON save_items(slot_label);
 CREATE INDEX idx_items_bangumi_id ON save_items(bangumi_id);
 CREATE INDEX idx_items_category ON save_items(item_category);
 CREATE INDEX idx_custom_templates_created_at ON custom_templates(created_at);
+-- Cache indexes covered by PRIMARY KEY

@@ -117,5 +117,11 @@ export const api = {
         if (!res.ok) throw new Error('Fetch trending failed')
         const data = await res.json()
         return data.results || []
+    },
+
+    async getTemplateStats(templateId: string, period: '24h' | 'week' | 'all' = 'all') {
+        const res = await fetch(`/api/stats/${templateId}?period=${period}`)
+        if (!res.ok) throw new Error('Failed to load stats')
+        return res.json()
     }
 }

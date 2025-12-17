@@ -23,6 +23,7 @@ const list = ref<GridItem[]>([])
 const step = ref<1 | 2>(1) // 1: Edit, 2: Preview/Share
 const generatedImage = ref('')
 const loading = ref(false)
+const enableVoting = ref(false) // NEW: Voting Switch
 
 // Init properties
 function initGrid() {
@@ -66,7 +67,8 @@ async function generateChallengeCard() {
           cols: cols.value,
           items: list.value.map(i => i.label),
           creator: creatorName.value,
-          templateName: templateName.value 
+          templateName: templateName.value,
+          voting: { enabled: enableVoting.value } // NEW
         }
     })
     
@@ -238,6 +240,44 @@ async function copyLink() {
                     </div>
                  </div>
               </div>
+
+
+               <!-- Voting Switch -->
+               <div class="flex items-center justify-between bg-gray-50 p-4 rounded-xl border-2 border-transparent hover:border-pink-100 transition-colors">
+                  <div class="flex flex-col">
+                      <span class="font-bold text-gray-700 flex items-center gap-2">
+                          <div class="i-carbon-chart-relationship text-[#e4007f]" />
+                          开启全民投票统计
+                      </span>
+                      <span class="text-xs text-gray-400">开启后，将汇总所有人的填表结果生成榜单</span>
+                      <!-- Stats Benefits List -->
+                       <div v-if="enableVoting" class="mt-2 space-y-1 text-[10px] text-gray-500 bg-white/50 p-2 rounded-lg border border-gray-100 animate-fade-in">
+                           <div class="flex items-center gap-1.5">
+                               <div i-carbon-chart-bar class="text-[#e4007f]" />
+                               <span>全网数据实时汇总</span>
+                           </div>
+                           <div class="flex items-center gap-1.5">
+                               <div i-carbon-trophy class="text-yellow-500" />
+                               <span>自动生成人气排行榜</span>
+                           </div>
+                           <div class="flex items-center gap-1.5">
+                               <div i-carbon-user-multiple class="text-blue-500" />
+                               <span>观众可互动投票应援</span>
+                           </div>
+                       </div>
+                  </div>
+                  
+                  <button 
+                    class="relative w-12 h-7 rounded-full transition-colors duration-300 focus:outline-none"
+                    :class="enableVoting ? 'bg-[#e4007f]' : 'bg-gray-300'"
+                    @click="enableVoting = !enableVoting"
+                  >
+                      <div 
+                        class="absolute top-1 left-1 bg-white w-5 h-5 rounded-full shadow-sm transition-transform duration-300"
+                        :class="enableVoting ? 'translate-x-5' : 'translate-x-0'"
+                      />
+                  </button>
+               </div>
            </div>
            
            <div class="flex flex-col justify-center items-center bg-gray-50 rounded-xl p-4 text-center">
