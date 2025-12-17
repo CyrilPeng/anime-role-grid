@@ -1,21 +1,17 @@
-# 📚 Documentation Index
+# 📘 Anime Role Grid 2.0 Docs
 
-Welcome to the **Anime Role Grid** documentation.
+欢迎来到新版文档中心。我们已经完成了 V2 版本的重构，旧的文档已归档。
 
-## 🏗️ Specifications (`/specs`)
-Technical design documents and implementation details.
-- [**Video Export Plan**](./specs/video-export-plan.md): Logic for generating panning videos.
-- [**Drawing Logic**](./specs/drawing-logic.md): Canvas rendering rules.
-- [**Export Analysis**](./specs/export-analysis.md): Technical analysis of image export methods.
+## 🚀 核心文档
 
-## 📊 Reports (`/reports`)
-Historical reports, user research, and strategic analysis.
-- [**Viral Strategy (2024)**](./reports/2024-viral-strategy.md): Social media growth strategy.
-- [**User Research**](./reports/user-research.md): User feedback and feature requests.
-- [**Report V1**](./reports/report-v1.md): Initial project status report.
-- [**Report V3**](./reports/report-v3.md): Codebase evaluation and future planning.
+- [**架构与开发手册 (Architecture & Dev Guide)**](./Architecture_and_Dev_Guide.md)  
+  *必读！* 包含系统架构、目录结构、开发规范、测试策略以及最佳实践。
+- [**API 接口文档 (API Reference)**](./API_Reference.md)  
+  后端 HTTP 接口的详细定义、参数说明和返回示例。
+- [**数据库设计 (Database Schema)**](./Database_Schema.md)  
+  D1 数据库的表结构、字段含义及数据分析模型说明。
 
-## ⚙️ Operations (`/ops`)
-Operational guides, data collection, and lessons learned.
-- [**Data Collection**](./ops/data-collection.md): Analytics schema and privacy policy.
-- [**Lessons Learned**](./ops/lessons-learned.md): Post-mortem of bugs and issues (e.g., Search Proxy bug).
+## 📦 归档 (Archive)
+
+旧版本的 Spec 和 Reports 已移动至此，仅供考古：
+- [Archive Folder](./archive/)

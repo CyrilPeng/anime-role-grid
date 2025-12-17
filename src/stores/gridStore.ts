@@ -12,8 +12,9 @@ export const useGridStore = createGlobalState(() => {
     // --- State ---
 
     // The ID of the current template (official or custom)
-    // Persisted to localStorage so users don't lose context on refresh
-    const currentTemplateId = useStorage('anime-grid-template-id', 'classic')
+    // The ID of the current template (official or custom)
+    // Persisted to sessionStorage so tabs are isolated but refresh-proof
+    const currentTemplateId = useStorage('anime-grid-template-id', 'classic', globalThis.sessionStorage)
 
     // The definitive list of items in the grid
     // We use a map { [templateId]: GridItem[] } to persist data across template switches locally

@@ -7,7 +7,8 @@
     "dev": "vite",
     "dev:full": "wrangler pages dev -- npm run dev",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",
@@ -22,13 +23,16 @@
     "@iconify-json/carbon": "^1.2.14",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
     "@vueuse/core": "^14.1.0",
     "dotenv": "^17.2.3",
+    "jsdom": "^27.3.0",
     "tsx": "^4.20.6",
     "typescript": "~5.9.3",
     "unocss": "^66.5.9",
     "vite": "^7.2.4",
+    "vitest": "^4.0.16",
     "vue-tsc": "^3.1.4",
     "wrangler": "^4.53.0"
   }
