@@ -18,7 +18,7 @@ const offset = ref(0)
 const hasMore = ref(true)
 const trendingList = shallowRef<any[]>([])
 const trendingLoading = ref(true)
-const activePeriod = ref<'12h' | '24h' | 'week' | 'all'>('24h')
+const activePeriod = ref<'12h' | '24h' | 'week' | 'all'>('week')
 
 async function fetchTrending() {
   trendingLoading.value = true
@@ -395,7 +395,7 @@ onMounted(() => {
                 <!-- Time Period Tabs -->
                 <div class="flex bg-gray-100 rounded-lg p-0.5">
                     <button 
-                        v-for="p in ['24h', 'week', 'all']" 
+                        v-for="p in ['week', '24h', 'all']" 
                         :key="p"
                         class="px-3 py-1 text-xs font-bold rounded-md transition-all"
                         :class="activePeriod === p ? 'bg-white text-[#e4007f] shadow-sm' : 'text-gray-500 hover:text-gray-700'"
