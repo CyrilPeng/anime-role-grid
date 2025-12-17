@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useMagicKeys, watchDebounced } from '@vueuse/core'
-import { api } from '~/services/api'
+import { useBgmSearch } from '~/logic/search'
 import type { BgmCharacterSearchResultItem, BgmSubjectSearchResultItem, BgmSearchResultItem } from '~/types'
 import Cropper from 'cropperjs'
 import 'cropperjs/dist/cropper.css'
@@ -89,25 +89,27 @@ async function handleSearch() {
   if (!keyword.value) return
   loading.value = true
   errorMessage.value = ''
-  
+  // Keep previous results while loading? No, clear them for fresh search usually better or show loading overlay
   if (offset.value === 0) searchResult.value = [] 
+  
+  // Reset pagination if this is a new search (triggered by watchers primarily)
+  // But wait, watcher calls this.
+  // We need to know if it is a "load more" or "new search".
+  // The watchers imply new search. 
+  // Let's assume watchers always mean reset offset.
+  // Actually, we should reset offset inside watcher or here?
+  // Let's do it right: 
+  // Watchers call handleSearch. We should reset offset there?
+  // Or handleSearch resets offset? 
+  // If I call handleSearch explicitly from Enter key, it should reset.
+  // LoadMore calls separate function.
+  // So handleSearch = New Search.
   
   offset.value = 0
   hasMore.value = true
   
   try {
-    // Ported: Use unified API service
-    // Note: API wrapper now handles headers, mode, and filtering internally
-    const results = await api.searchBangumi(keyword.value, searchType.value, searchYear.value)
-    
-    // API service defaults to offset 0 / limit 20. 
-    // If we want pagination support in API service, we should add offset param there.
-    // However, current api.searchBangumi hardcodes offset: 0.
-    // We should explicitly add offset support to api.ts if we want loadMore to work.
-    // For now, let's fix api.ts next, or pass custom args?
-    // Wait, I just hardcoded offset: 0 in api.ts. That's a regression for Load More.
-    // I will fix api.ts to accept offset in the next step.
-    
+    const results = await useBgmSearch(keyword.value, 0, searchType.value, searchYear.value)
     searchResult.value = results
     if (results.length < 20) hasMore.value = false
   } catch (e: any) {
@@ -123,8 +125,7 @@ async function loadMore() {
   offset.value += 20
   
   try {
-    // API now supports offset
-    const results = await api.searchBangumi(keyword.value, searchType.value, searchYear.value, offset.value)
+    const results = await useBgmSearch(keyword.value, offset.value, searchType.value, searchYear.value)
     if (results.length > 0) {
       searchResult.value = [...searchResult.value, ...results]
       if (results.length < 20) hasMore.value = false

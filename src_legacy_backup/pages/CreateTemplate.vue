@@ -6,7 +6,6 @@ import Footer from '~/components/Footer.vue'
 import Grid from '~/components/Grid.vue'
 import * as QRCode from 'qrcode'
 import { exportGridAsImage } from '~/logic/export' // Use existing logic
-import { api } from '~/services/api'
 import type { GridItem } from '~/types'
 
 console.log('CreateTemplate loaded')
@@ -59,19 +58,24 @@ async function generateChallengeCard() {
   
   loading.value = true
   try {
-    // 1. Create Template using Service
-    const data = await api.createTemplate({
-        title: mainTitle.value || '我的二次元成分表',
+    // 1. Create Template in Backend first to get ID
+    const res = await fetch('/api/template/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: mainTitle.value || '我的二次元成分表', // Fix: Use Main Title as DB Title
+        type: 'grid',
         config: {
           cols: cols.value,
           items: list.value.map(i => i.label),
           creator: creatorName.value,
-          templateName: templateName.value 
+          templateName: templateName.value // Fix: Save template name in config
         }
+      })
     })
     
-    if (!data.id) throw new Error('创建失败: ID missing')
-    // Success, data.id is verified
+    const data = await res.json()
+    if (!data.id) throw new Error(data.error || '创建失败')
     
     // 2. Generate QR Code for this ID
     const shareUrl = `${window.location.origin}/t/${data.id}`

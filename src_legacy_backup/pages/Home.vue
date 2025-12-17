@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import Header from '~/components/Header.vue'
 import Footer from '~/components/Footer.vue'
 import GuideModal from '~/components/GuideModal.vue'
@@ -8,12 +8,8 @@ import TrendingGuideModal from '~/components/TrendingGuideModal.vue'
 import TemplateGalleryModal from '~/components/TemplateGalleryModal.vue'
 import GridEditor from '~/components/GridEditor.vue' // Import Wrapper
 
-import { useGridStore } from '~/stores/gridStore'
+import { list, name, currentTemplateId } from '~/logic/storage'
 import { TEMPLATES } from '~/logic/templates'
-
-// Store
-const store = useGridStore()
-const { loadTemplate, currentTitle, currentTemplateId } = store
 
 // Modals
 const showGuideModal = ref(false)
@@ -34,21 +30,15 @@ if (typeof window !== 'undefined') {
   }
 }
 
+import { onMounted } from 'vue'
+
+// ...
+
 onMounted(() => {
-  // Initialize with current or default
-  // Integrity check handled by store? Or check here?
-  const initialID = currentTemplateId.value || 'classic'
-  
-  // Ensure we load the official template structure
-  // If ID is custom but we are on Home, we might want to reset to official?
-  // Home is for Official. ViewTemplate is for Custom.
-  // Actually Home supports switching official templates.
-  if (initialID === 'custom' || !TEMPLATES.some(t => t.id === initialID)) {
-      // If the persisted ID is invalid or 'custom' (legacy keyword), reset to default
-      // If the persisted ID is invalid or 'custom' (legacy keyword), reset to default
-      store.loadTemplate('classic')
-  } else {
-      store.loadTemplate(initialID)
+  // Integrity Check: If current ID is not in official list (e.g. 'custom'), reset it
+  const isOfficial = TEMPLATES.some(t => t.id === currentTemplateId.value)
+  if (!isOfficial) {
+      currentTemplateId.value = TEMPLATES[0]?.id || '2024_general-anime'
   }
 })
 
@@ -63,11 +53,24 @@ watch(showFirstTimeGuide, (newVal, oldVal) => {
   }
 })
 
-// Template Logic (for UI Display)
-const currentTemplateName = computed(() => {
-    return TEMPLATES.find(t => t.id === currentTemplateId.value)?.name || '默认模板'
+// Template Logic
+const currentTemplate = computed(() => 
+  TEMPLATES.find(t => t.id === currentTemplateId.value) || TEMPLATES[0]!
+)
+
+// Auto-reset custom title
+watch(currentTemplate, () => {
+  name.value = ''
 })
 
+// Adapt to GridEditor format
+const editorData = computed(() => ({
+    title: currentTemplate.value.name,
+    config: {
+        cols: currentTemplate.value.cols,
+        items: currentTemplate.value.items
+    }
+}))
 
 function handleManualGuideOpen() {
   shouldShowTrendingAfterGuide.value = false
@@ -75,18 +78,14 @@ function handleManualGuideOpen() {
 }
 
 function selectTemplate(id: string) {
-  loadTemplate(id)
+  currentTemplateId.value = id
   showTemplateModal.value = false
 }
 
 async function handleTrendingSelect(payload: { id: string, title: string }) {
-  // Trending Select logic:
-  // If it's an official template ID, switching to it is enough.
-  // The 'title' payload is just for the user's custom title?
-  // We need to implement 'setName' in store or just allow binding.
-  await loadTemplate(payload.id)
-  // TODO: Set custom title? The store exposes currentTitle ref which is writable.
-  currentTitle.value = payload.title
+  currentTemplateId.value = payload.id
+  await nextTick()
+  name.value = payload.title
   showTrendingGuide.value = false
 }
 
@@ -97,16 +96,12 @@ function handleOpenGallery() {
 
 function handleResetTags() {
   if (!confirm('确定要重置当前模板的所有标签文字吗？(图片不会被清除)')) return
-  const id = currentTemplateId.value
-  const official = TEMPLATES.find(t => t.id === id)
-  if (official) {
-      // Create fresh items
-      const newList = store.currentList.value.map((item, index) => ({
-          ...item,
-          label: official.items[index] || ''
-      }))
-      store.currentList.value = newList
-  }
+  const templateItems = currentTemplate.value.items
+  const newList = list.value.map((item, index) => ({
+    ...item,
+    label: templateItems[index] || ''
+  }))
+  list.value = newList
 }
 </script>
 
@@ -116,7 +111,11 @@ function handleResetTags() {
     
     <div class="container mx-auto flex flex-col items-center gap-6 px-4 max-w-full">
         <!-- Unified Editor Component -->
-        <GridEditor>
+        <GridEditor 
+            mode="official"
+            :template-id="currentTemplateId"
+            :template-data="editorData"
+        >
             <!-- Slot: Extra Actions (Specific to Home) -->
             <template #extra-actions>
                  <!-- Guide Buttons -->
@@ -152,7 +151,7 @@ function handleResetTags() {
                             @click="showTemplateModal = true"
                             class="flex items-center justify-center gap-2 bg-white border-2 border-black px-4 py-1.5 rounded-md text-sm font-bold min-w-[160px] transition-colors hover:border-[#e4007f] hover:text-[#e4007f] focus:outline-none"
                         >
-                            <span>{{ currentTemplateName }}</span>
+                            <span>{{ currentTemplate.name }}</span>
                             <div i-carbon-chevron-right class="text-xs" />
                         </button>
                         </div>

@@ -6,15 +6,24 @@ import Search from '~/components/Search.vue'
 import VideoExportModal from '~/components/VideoExportModal.vue'
 import VideoSuccessModal from '~/components/VideoSuccessModal.vue'
 import JoinGroupModal from '~/components/JoinGroupModal.vue'
-import { useGridStore } from '~/stores/gridStore' // NEW: Store
+import { list, currentTemplateId } from '~/logic/storage'
 import { exportGridAsImage } from '~/logic/export'
 import { useVideoExport } from '~/logic/video-export'
 
-// Props: Minimal now, just UI flags if needed
-// Actually, for backward compat with slots, we might keep it simple.
-// But we want to rely on Store for data.
 const props = defineProps<{
-  // Optional overrides, but mostly we use store
+  templateId: string // NEW: Explicit ID required for saving
+  mode: 'official' | 'custom'
+  templateData: {
+    title: string
+    config: {
+      cols: number
+      items: string[]
+      creator?: string
+      templateName?: string
+    }
+  } | null
+  loading?: boolean
+  error?: string
   customTitle?: string
 }>()
 
@@ -25,20 +34,6 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
-const store = useGridStore()
-
-// Store State Destructuring
-const { 
-  currentList, 
-  currentTitle, 
-  currentConfig, 
-  isCustomMode: modeIsCustom, 
-  currentTemplateId, 
-  isLoading: storeLoading,
-  error: storeError,
-  updateItem,
-  saveToCloud
-} = store
 
 // Local State
 const showSearch = ref(false)
@@ -64,8 +59,15 @@ function handleAdd(character: any) {
   const index = currentSlotIndex.value
   if (index === null) return
   
-  updateItem(index, character)
+  const newList = [...list.value]
+  // Ensure slot exists
+  if (!newList[index]) {
+      // Should not happen if list is init correctly, but safety check
+      newList[index] = { label: props.templateData?.config?.items?.[index] || '', character: undefined }
+  }
   
+  newList[index] = { ...newList[index], character }
+  list.value = newList
   showSearch.value = false
   currentSlotIndex.value = null
 }
@@ -73,33 +75,24 @@ function handleAdd(character: any) {
 function handleClear() {
     const index = currentSlotIndex.value
     if (index === null) return;
-    
-    // Clear item (keep label, remove character)
-    const item = currentList.value[index]
-    if (item) {
-        updateItem(index, undefined)
+    const newList = [...list.value];
+    if (newList[index]) {
+        newList[index] = { ...newList[index], character: undefined };
+        list.value = newList;
     }
-    
     showSearch.value = false;
     currentSlotIndex.value = null;
 }
 
 function handleUpdateLabel(payload: { index: number, label: string }) {
-  // Update store directly? 
-  // Store updateItem currently takes character. We might need updateItemLabel?
-  // For now let's hack it: read current, update label, write back.
-  // Actually, useGridStore item is { label, character }.
-  const index = payload.index
-  const oldItem = currentList.value[index]
-  if (oldItem) {
-     const newItem = { ...oldItem, label: payload.label }
-     // We need a way to update the WHOLE item or just label.
-     // Let's modify store.updateItem to accept partial? Or manually set list.
-     // Since `currentList` is writable in store:
-     const newList = [...currentList.value]
-     newList[index] = newItem
-     currentList.value = newList
-  }
+  // Only for Official mode usually, but maybe useful for custom too?
+  // Home.vue allows editing labels. ViewTemplate.vue currently doesn't (Grid calls it but maybe we didn't hook it up)
+  // Let's support it if the Grid emits it.
+  const { index, label } = payload
+  const newList = [...list.value]
+  if (!newList[index]) return
+  newList[index] = { ...newList[index], label }
+  list.value = newList
 }
 
 // --- Export Logic ---
@@ -108,33 +101,41 @@ async function handleSave() {
   if (saving.value) return
   saving.value = true
   try {
-    // 1. Analytics & Data Collection (Via Store)
+    // 1. Analytics & Data Collection
+    // We do this concurrently (fire and forget) or await it?
+    // Await is safer to ensure we have the data.
     try {
-        await saveToCloud()
+        await fetch('/api/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                templateId: props.templateId, // Use the prop!
+                customTitle: props.customTitle || props.templateData?.title || '',
+                items: list.value
+            })
+        })
     } catch (e) {
         console.error('Analytics save failed', e)
+        // We don't block the user if analytics fails, just log it.
     }
 
     // Config object for Draw
     const exportConfig = {
-        cols: Number(currentConfig.value?.cols) || 3,
-        creator: currentConfig.value?.creator,
+        cols: Number(props.templateData?.config.cols) || 3,
+        creator: props.templateData?.config.creator,
         filler: fillerName.value
     }
 
-    // Determine titles
-    const effectiveTitle = props.customTitle || currentConfig.value?.templateName || currentTitle.value
-
     generatedImage.value = await exportGridAsImage(
-        currentList.value, 
-        currentTemplateId.value, 
+        list.value, 
+        props.templateId, // Use the prop!
         props.customTitle || '', 
         'anime-grid', 
         showCharacterName.value,
         exportConfig,
         undefined, // qrCode
-        modeIsCustom.value ? 'challenge' : 'standard',
-        effectiveTitle
+        props.mode === 'custom' ? 'challenge' : 'standard',
+        props.templateData?.config?.templateName || props.templateData?.title // templateName (Prefer config, fallback to title)
     )
     showShareModal.value = true
   } catch (e: any) {
@@ -161,11 +162,9 @@ async function handleShare() {
 // --- Video Logic ---
 const { isModalOpen: isVideoModalOpen, isSuccessModalOpen, isExporting, progress, statusText, lastExportFormat, generateVideo } = useVideoExport()
 function handleVideoExport(settings: any) {
-   // Use store config
-   const items = currentConfig.value?.items || currentList.value.map(i => i.label)
-   generateVideo(currentList.value, items, { ...settings, showName: showCharacterName.value })
+   if (!props.templateData) return
+   generateVideo(list.value, props.templateData.config.items, { ...settings, showName: showCharacterName.value })
 }
-
 
 </script>
 
@@ -173,12 +172,12 @@ function handleVideoExport(settings: any) {
   <div class="w-full flex flex-col items-center">
     
     <!-- Loading / Error States -->
-    <div v-if="storeLoading" class="flex justify-center py-20">
+    <div v-if="loading" class="flex justify-center py-20">
         <div class="animate-spin i-carbon-circle-dash text-4xl text-[#e4007f]"></div>
     </div>
 
-    <div v-else-if="storeError" class="text-center py-20">
-        <h2 class="text-2xl font-bold mb-4">😢 {{ storeError }}</h2>
+    <div v-else-if="error" class="text-center py-20">
+        <h2 class="text-2xl font-bold mb-4">😢 {{ error }}</h2>
         <button @click="router.push('/')" class="px-6 py-2 bg-[#e4007f] text-white rounded-full">返回首页</button>
     </div>
 
@@ -194,7 +193,7 @@ function handleVideoExport(settings: any) {
             </div>
 
              <!-- Navigation for Custom Mode -->
-             <div v-if="modeIsCustom" class="w-full flex justify-center mb-2">
+             <div v-if="mode === 'custom'" class="w-full flex justify-center mb-2">
                  <button 
                     @click="router.push('/')" 
                     class="flex items-center gap-1 text-gray-500 hover:text-[#e4007f] transition-colors py-1 px-4 rounded-full border border-transparent hover:border-pink-100 hover:bg-pink-50"
@@ -206,9 +205,9 @@ function handleVideoExport(settings: any) {
 
             <Grid 
                 id="grid-capture-target"
-                :list="currentList" 
-                :cols="Number(currentConfig?.cols) || 3"
-                :title="currentConfig?.templateName || currentTitle" 
+                :list="list" 
+                :cols="Number(templateData?.config.cols) || 3"
+                :title="templateData?.config?.templateName || templateData?.title" 
                 :customTitle="props.customTitle"
                 @update:customTitle="emit('update:customTitle', $event)"
                 @select-slot="handleSelectSlot"
@@ -228,7 +227,7 @@ function handleVideoExport(settings: any) {
                  </button>
 
                  <!-- Input: Filler Name (Only for Custom Mode) -->
-                 <div v-if="modeIsCustom" class="flex items-center gap-2 px-4 py-2 bg-white rounded-full border-2 border-gray-200 focus-within:border-[#e4007f] transition-all">
+                 <div v-if="mode === 'custom'" class="flex items-center gap-2 px-4 py-2 bg-white rounded-full border-2 border-gray-200 focus-within:border-[#e4007f] transition-all">
                      <div class="i-carbon-user text-gray-400" />
                      <input 
                        v-model="fillerName" 

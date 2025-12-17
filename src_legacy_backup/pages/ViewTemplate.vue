@@ -1,53 +1,80 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import Header from '~/components/Header.vue'
 import Footer from '~/components/Footer.vue'
 import GridEditor from '~/components/GridEditor.vue'
 import GuideModal from '~/components/GuideModal.vue'
 import FirstTimeGuide from '~/components/FirstTimeGuide.vue'
-
-import { useGridStore } from '~/stores/gridStore'
+import { list, currentTemplateId } from '~/logic/storage'
 import { TEMPLATES } from '~/logic/templates'
 
 const route = useRoute()
 const id = route.params.id as string
-const store = useGridStore()
-const { loadTemplate, currentTitle, currentConfig, currentList } = store
-
+const loading = ref(true)
 const error = ref('')
+const customTitle = ref('') // Local title state
 const showGuideModal = ref(false)
 const showFirstTimeGuide = ref(false)
 
 function handleResetTags() {
   if (!confirm('确定要重置当前模板的所有标签文字吗？(图片不会被清除)')) return
-  const defaults = currentConfig.value?.items || []
-  const newList = currentList.value.map((item, index) => ({
-      ...item,
-      label: defaults[index] || ''
+  if (!templateData.value) return
+  
+  const templateItems = templateData.value.config.items
+  const newList = list.value.map((item, index) => ({
+    ...item,
+    label: templateItems[index] || ''
   }))
-  currentList.value = newList
+  list.value = newList
 }
 
-// Watch for route changes (e.g. switching templates via link)
-watch(() => route.params.id, (newId) => {
-    if (newId) loadTemplate(newId as string)
-})
+const templateData = ref<{
+  type: string
+  title: string
+  config: {
+    cols: number
+    items: string[]
+    creator?: string
+  }
+} | null>(null)
 
 onMounted(async () => {
   try {
-      if (!id) throw new Error('No ID provided')
-      await loadTemplate(id)
+    const res = await fetch(`/api/template/${id}`)
+    if (!res.ok) throw new Error('模版不存在或已删除')
+    templateData.value = await res.json()
+    
+    // Init Storage
+    if (templateData.value) {
+        // 1. Set ID First
+        currentTemplateId.value = 'custom' 
+        
+        // Initialize local title with User's Main Title (so it's not empty)
+        customTitle.value = templateData.value.title || ''
+        
+        // 2. Populate list
+        list.value = templateData.value.config.items.map(label => ({
+            label,
+            character: undefined
+        }))
+    }
   } catch (e: any) {
     console.error(e)
     error.value = e.message
-    alert(`加载出错: ${e.message}`)
+    alert(`加载出错: ${e.name}: ${e.message}\n${e.stack || ''}`)
+  } finally {
+    loading.value = false
   }
 })
 
 onUnmounted(() => {
-    // Reset to default on leave
-    loadTemplate('classic')
+    // Reset to default template to avoid pollution
+    if (currentTemplateId.value === 'custom') {
+        const defaultId = TEMPLATES[0]?.id || '2024_general-anime'
+        currentTemplateId.value = defaultId
+    }
+    // No need to clear customTitle here as it is local ref
 })
 </script>
 
@@ -57,7 +84,10 @@ onUnmounted(() => {
     
     <div class="container mx-auto flex flex-col items-center gap-6 px-4 max-w-full">
          <GridEditor 
-            v-model:customTitle="currentTitle"
+            mode="custom" 
+            :template-data="templateData" 
+            v-model:customTitle="customTitle"
+            :loading="loading" 
             :error="error"
         >
             <template #extra-actions>
@@ -93,7 +123,7 @@ onUnmounted(() => {
                         <div
                             class="flex items-center justify-center gap-2 bg-gray-50 border-2 border-gray-200 px-4 py-1.5 rounded-md text-sm font-bold min-w-[160px] text-gray-500 cursor-not-allowed"
                         >
-                            <span>{{ currentTitle }}</span>
+                            <span>{{ templateData?.title }}</span>
                         </div>
                         </div>
                         
