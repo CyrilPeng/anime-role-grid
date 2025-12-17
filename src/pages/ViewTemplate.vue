@@ -8,7 +8,7 @@ import GuideModal from '~/components/GuideModal.vue'
 import FirstTimeGuide from '~/components/FirstTimeGuide.vue'
 
 import { useGridStore } from '~/stores/gridStore'
-import { TEMPLATES } from '~/logic/templates'
+
 
 const route = useRoute()
 const id = route.params.id as string

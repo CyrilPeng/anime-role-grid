@@ -2,7 +2,7 @@
 import { ref, shallowRef, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useMagicKeys, watchDebounced } from '@vueuse/core'
 import { api } from '~/services/api'
-import type { BgmCharacterSearchResultItem, BgmSubjectSearchResultItem, BgmSearchResultItem } from '~/types'
+import type { BgmSearchResultItem } from '~/types'
 import Cropper from 'cropperjs'
 import 'cropperjs/dist/cropper.css'
 
@@ -11,7 +11,7 @@ const emit = defineEmits(['add', 'close', 'clear'])
 
 const input = ref<HTMLInputElement>()
 const keyword = ref('')
-const searchResult = shallowRef<(BgmCharacterSearchResultItem | BgmSubjectSearchResultItem)[]>([])
+const searchResult = shallowRef<BgmSearchResultItem[]>([])
 const loading = ref(false)
 const errorMessage = ref('')
 const offset = ref(0)
