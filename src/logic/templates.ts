@@ -120,24 +120,14 @@ export const TEMPLATES: Template[] = [
         items: ['声优 1', '声优 2', '声优 3', '声优 4', '声优 5', '声优 6', '声优 7', '声优 8', '声优 9']
     },
     {
-        id: '9idol',
-        name: '9 idol (3x3)',
+        id: '9person',
+        name: '9 person (3x3)',
         category: 'character',
         label: '纯粹',
         cols: 3,
         badge: 'pure',
-        defaultTitle: '我最喜欢的 9 位偶像',
-        items: ['偶像 1', '偶像 2', '偶像 3', '偶像 4', '偶像 5', '偶像 6', '偶像 7', '偶像 8', '偶像 9']
-    },
-    {
-        id: '9vtuber',
-        name: '9 VTuber (3x3)',
-        category: 'character',
-        label: '纯粹',
-        cols: 3,
-        badge: 'pure',
-        defaultTitle: '我最喜欢的 9 位 VTuber',
-        items: ['VTuber 1', 'VTuber 2', 'VTuber 3', 'VTuber 4', 'VTuber 5', 'VTuber 6', 'VTuber 7', 'VTuber 8', 'VTuber 9']
+        defaultTitle: '我最喜欢的 9 位人物',
+        items: ['人物 1', '人物 2', '人物 3', '人物 4', '人物 5', '人物 6', '人物 7', '人物 8', '人物 9']
     },
     {
         id: '9couple',
@@ -230,54 +220,24 @@ export const TEMPLATES: Template[] = [
         items: ['场面 1', '场面 2', '场面 3', '场面 4', '场面 5', '场面 6', '场面 7', '场面 8', '场面 9']
     },
     {
-        id: '9artist',
-        name: '9 artist (3x3)',
-        category: 'work',
-        label: '纯粹',
-        cols: 3,
-        badge: 'pure',
-        defaultTitle: '我最喜欢的 9 位画师',
-        items: ['画师 1', '画师 2', '画师 3', '画师 4', '画师 5', '画师 6', '画师 7', '画师 8', '画师 9']
-    },
-    {
-        id: '9coser',
-        name: '9 coser (3x3)',
+        id: '9character',
+        name: '9 character (3x3)',
         category: 'character',
         label: '纯粹',
         cols: 3,
         badge: 'pure',
-        defaultTitle: '我最喜欢的 9 位 coser',
-        items: ['coser 1', 'coser 2', 'coser 3', 'coser 4', 'coser 5', 'coser 6', 'coser 7', 'coser 8', 'coser 9']
+        defaultTitle: '我最喜欢的 9 个角色',
+        items: ['角色 1', '角色 2', '角色 3', '角色 4', '角色 5', '角色 6', '角色 7', '角色 8', '角色 9']
     },
     {
-        id: '9author',
-        name: '9 author (3x3)',
-        category: 'work',
+        id: '9person_2',
+        name: '9 creator (3x3)',
+        category: 'character',
         label: '纯粹',
         cols: 3,
         badge: 'pure',
-        defaultTitle: '我最喜欢的 9 位作家',
-        items: ['作家 1', '作家 2', '作家 3', '作家 4', '作家 5', '作家 6', '作家 7', '作家 8', '作家 9']
-    },
-    {
-        id: '9director',
-        name: '9 director (3x3)',
-        category: 'work',
-        label: '纯粹',
-        cols: 3,
-        badge: 'pure',
-        defaultTitle: '我最喜欢的 9 位导演',
-        items: ['导演 1', '导演 2', '导演 3', '导演 4', '导演 5', '导演 6', '导演 7', '导演 8', '导演 9']
-    },
-    {
-        id: '9composer',
-        name: '9 composer (3x3)',
-        category: 'work',
-        label: '纯粹',
-        cols: 3,
-        badge: 'pure',
-        defaultTitle: '我最喜欢的 9 位作曲家',
-        items: ['作曲 1', '作曲 2', '作曲 3', '作曲 4', '作曲 5', '作曲 6', '作曲 7', '作曲 8', '作曲 9']
+        defaultTitle: '我最喜欢的 9 位创作者',
+        items: ['创作者 1', '创作者 2', '创作者 3', '创作者 4', '创作者 5', '创作者 6', '创作者 7', '创作者 8', '创作者 9']
     },
     {
         id: '9studio',
@@ -290,26 +250,6 @@ export const TEMPLATES: Template[] = [
         items: ['公司 1', '公司 2', '公司 3', '公司 4', '公司 5', '公司 6', '公司 7', '公司 8', '公司 9']
     },
     {
-        id: '9food',
-        name: '9 food (3x3)',
-        category: 'fun',
-        label: '纯粹',
-        cols: 3,
-        badge: 'pure',
-        defaultTitle: '我最喜欢的 9 种美食',
-        items: ['美食 1', '美食 2', '美食 3', '美食 4', '美食 5', '美食 6', '美食 7', '美食 8', '美食 9']
-    },
-    {
-        id: '9cat',
-        name: '9 cat (3x3)',
-        category: 'fun',
-        label: '纯粹',
-        cols: 3,
-        badge: 'pure',
-        defaultTitle: '我最喜欢的 9 只猫娘',
-        items: ['猫娘 1', '猫娘 2', '猫娘 3', '猫娘 4', '猫娘 5', '猫娘 6', '猫娘 7', '猫娘 8', '猫娘 9']
-    },
-    {
         id: '9voice',
         name: '9 voice (3x3)',
         category: 'work',
@@ -318,6 +258,26 @@ export const TEMPLATES: Template[] = [
         badge: 'pure',
         defaultTitle: '我最喜欢的 9 句台词',
         items: ['台词 1', '台词 2', '台词 3', '台词 4', '台词 5', '台词 6', '台词 7', '台词 8', '台词 9']
+    },
+    {
+        id: '9rating',
+        name: '9 rating (3x3)',
+        category: 'work',
+        label: '纯粹',
+        cols: 3,
+        badge: 'pure',
+        defaultTitle: '我最喜欢的 9 部评分最高的',
+        items: ['Top 1', 'Top 2', 'Top 3', 'Top 4', 'Top 5', 'Top 6', 'Top 7', 'Top 8', 'Top 9']
+    },
+    {
+        id: '9collection',
+        name: '9 collection (3x3)',
+        category: 'work',
+        label: '纯粹',
+        cols: 3,
+        badge: 'pure',
+        defaultTitle: '我的 9 个收藏',
+        items: ['收藏 1', '收藏 2', '收藏 3', '收藏 4', '收藏 5', '收藏 6', '收藏 7', '收藏 8', '收藏 9']
     },
 
     // =================================================================
