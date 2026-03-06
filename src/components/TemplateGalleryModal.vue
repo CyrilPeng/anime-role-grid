@@ -13,6 +13,19 @@ const BADGE_CONFIG: Record<TemplateBadge, { emoji: string, label: string, class:
     pure: { emoji: '💎', label: '纯粹', class: 'bg-blue-100 text-blue-600 border-blue-200' },
 }
 
+// 复制链接功能
+const copiedId = ref<string | null>(null)
+
+function copyLink(id: string) {
+    const url = `${window.location.origin}/t/${id}`
+    navigator.clipboard.writeText(url).then(() => {
+        copiedId.value = id
+        setTimeout(() => {
+            copiedId.value = null
+        }, 2000)
+    })
+}
+
 defineProps<{
   show: boolean
   currentId: string
@@ -225,6 +238,18 @@ onMounted(async () => {
                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-50 text-gray-400 border border-gray-100">
                       {{ template.label }}
                    </span>
+                </div>
+
+                <!-- 复制链接按钮 -->
+                <div class="mt-3 flex items-center justify-between w-full">
+                    <button
+                        @click.stop="copyLink(template.id)"
+                        class="text-xs flex items-center gap-1 px-2 py-1 rounded bg-gray-50 hover:bg-primary/10 text-gray-500 hover:text-primary transition-colors border border-gray-200 hover:border-primary"
+                    >
+                        <div v-if="copiedId === template.id" class="i-carbon-checkmark text-green-500" />
+                        <div v-else class="i-carbon-link" />
+                        {{ copiedId === template.id ? '已复制' : '复制链接' }}
+                    </button>
                 </div>
 
                 <div 

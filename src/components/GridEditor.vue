@@ -9,16 +9,30 @@ import GridCanvas from '~/components/GridCanvas.vue'
 import GridActionButtons from '~/components/GridActionButtons.vue'
 import ImageExportModal from '~/components/ImageExportModal.vue'
 import { useGridStore } from '~/stores/gridStore'
-import { startStreamerTour } from '~/logic/streamerTour' 
+import { startStreamerTour } from '~/logic/streamerTour'
 import { exportGridAsImage } from '~/logic/export'
 import { useVideoExport } from '~/logic/video-export'
-import { toast } from 'vue-sonner' 
+import { toast } from 'vue-sonner'
 import StreamerDock from '~/components/StreamerDock.vue'
-import { useFullscreen } from '@vueuse/core' 
+import { useFullscreen } from '@vueuse/core'
 import { useModalStore, MODAL_PRIORITY } from '~/stores/modalStore' // NEW
 import { matchEasterEgg } from '~/logic/easterEggs' // NEW
 import EasterEggModal from '~/components/EasterEggModal.vue' // NEW
 import { tryShowTrending } from '~/logic/trendingTrigger' // NEW
+
+// 复制链接功能
+const linkCopied = ref(false)
+
+function copyTemplateLink() {
+    const url = `${window.location.origin}/t/${currentTemplateId.value}`
+    navigator.clipboard.writeText(url).then(() => {
+        linkCopied.value = true
+        toast.success('链接已复制!')
+        setTimeout(() => {
+            linkCopied.value = false
+        }, 2000)
+    })
+}
 
 defineProps<{
   error?: string
@@ -513,12 +527,19 @@ function handleVideoExport(settings: any) {
                          >
                              <div :class="isCanvasLocked ? 'i-carbon-locked' : 'i-carbon-unlocked'" class="text-xl" />
                          </button>
-                         <button 
+                         <button
                              class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                              @click="emit('open-gallery')"
                              title="切换模板"
                          >
                              <div class="i-carbon-grid text-xl" />
+                         </button>
+                         <button
+                             class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                             @click="copyTemplateLink"
+                             :title="linkCopied ? '已复制!' : '复制模板链接'"
+                         >
+                             <div :class="linkCopied ? 'i-carbon-checkmark text-green-500' : 'i-carbon-link text-xl'" />
                          </button>
                           <button 
                              class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
