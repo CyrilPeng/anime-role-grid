@@ -51,21 +51,21 @@ const BILIBILI_LINK = 'https://space.bilibili.com/36078469'
                  @click="emit('close')"
                  class="p-3 rounded-xl border-2 border-gray-100 dark:border-gray-700 hover:border-primary bg-white dark:bg-gray-800 text-center transition-all hover:shadow-md flex flex-col items-center gap-1"
                >
-                 <div class="i-carbon-user-avatar text-2xl text-gray-600 dark:text-gray-300" />
+                 <div class="i-carbon-user-avatar text-2xl text-primary" />
                  <div class="text-[10px] font-bold text-gray-700 dark:text-gray-200 leading-tight">我的动漫人物<br>喜好果然有问题</div>
                </button>
                <button
                  @click="emit('close')"
                  class="p-3 rounded-xl border-2 border-gray-100 dark:border-gray-700 hover:border-primary bg-white dark:bg-gray-800 text-center transition-all hover:shadow-md flex flex-col items-center gap-1"
                >
-                 <div class="i-carbon-book text-2xl text-blue-500" />
+                 <div class="i-carbon-book text-2xl text-primary" />
                  <div class="text-[10px] font-bold text-gray-700 dark:text-gray-200 leading-tight">构成我人生的<br>9 部漫画</div>
                </button>
                <button
                  @click="emit('close')"
                  class="p-3 rounded-xl border-2 border-gray-100 dark:border-gray-700 hover:border-primary bg-white dark:bg-gray-800 text-center transition-all hover:shadow-md flex flex-col items-center gap-1"
                >
-                 <div class="i-carbon-list text-2xl text-yellow-500" />
+                 <div class="i-carbon-list text-2xl text-primary" />
                  <div class="text-[10px] font-bold text-gray-700 dark:text-gray-200 leading-tight">Bro 懂我的<br>XP</div>
                </button>
              </div>
