@@ -62,6 +62,7 @@ const showSearch = ref(false)
 
 const showJoinGroupModal = ref(false)
 const showCharacterName = ref(false)
+const showLabel = ref(true) // 新增：控制标签文字显示
 const currentSlotIndex = ref<number | null>(null)
 const fillerName = ref('') 
 const canvasScale = ref(1) 
@@ -190,15 +191,16 @@ async function handleSave() {
     })
 
     generatedImage.value = await exportGridAsImage(
-        resolvedList, 
-        currentTemplateId.value, 
-        mainTitle, 
-        'anime-grid', 
+        resolvedList,
+        currentTemplateId.value,
+        mainTitle,
+        'anime-grid',
         showCharacterName.value,
         exportConfig,
-        undefined, 
+        undefined,
         modeIsCustom.value ? 'challenge' : 'standard',
-        templateName
+        templateName,
+        showLabel.value
     )
 
     // --- REFACTORED: Use Global Dispatcher ---
@@ -288,7 +290,7 @@ function handleVideoExport(settings: any) {
             }
         }
     })
-   generateVideo(resolvedList, items, { ...settings, showName: showCharacterName.value })
+   generateVideo(resolvedList, items, { ...settings, showName: showCharacterName.value, showLabel: showLabel.value })
 }
 </script>
 
@@ -352,6 +354,7 @@ function handleVideoExport(settings: any) {
                              :customTitle="currentTitle"
                              :defaultTitle="currentConfig?.defaultTitle"
                              v-model:showCharacterName="showCharacterName"
+                             v-model:showLabel="showLabel"
                              :modeIsCustom="modeIsCustom"
                              v-model:fillerName="fillerName"
                              :is-streamer-mode="isStreamerMode"
@@ -377,6 +380,7 @@ function handleVideoExport(settings: any) {
                     :customTitle="currentTitle"
                     :defaultTitle="currentConfig?.defaultTitle"
                     v-model:showCharacterName="showCharacterName"
+                    v-model:showLabel="showLabel"
                     :modeIsCustom="modeIsCustom"
                     v-model:fillerName="fillerName"
                     :is-streamer-mode="isStreamerMode"
@@ -403,8 +407,17 @@ function handleVideoExport(settings: any) {
                                <div :class="showCharacterName ? 'i-carbon-checkbox-checked' : 'i-carbon-checkbox'" class="text-xl" />
                                <span>显示角色名字</span>
                              </button>
-    
-                            <button 
+
+                            <button
+                               class="w-full mt-2 py-2 rounded-lg border-2 transition-all font-bold text-gray-400 border-gray-300 hover:border-primary hover:text-primary flex items-center justify-center gap-2"
+                               :class="{ 'bg-primary/5 border-primary text-primary': showLabel }"
+                               @click="showLabel = !showLabel"
+                             >
+                               <div :class="showLabel ? 'i-carbon-checkbox-checked' : 'i-carbon-checkbox'" class="text-xl" />
+                               <span>显示标签文字</span>
+                             </button>
+
+                            <button
                                 class="w-full mt-2 py-2 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 font-bold hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
                                 @click="isStreamerMode = true"
                             >
@@ -464,13 +477,21 @@ function handleVideoExport(settings: any) {
                     <div class="w-6 h-px bg-gray-200 dark:bg-gray-700 md:w-full md:h-px shrink-0" />
 
                     <div class="flex gap-2 flex-col">
-                         <button 
+                         <button
                             class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                             :class="{ 'text-primary bg-primary/10': showCharacterName }"
                             @click="showCharacterName = !showCharacterName"
                             title="显示角色名"
                         >
                             <span class="text-xl font-black font-serif leading-none">N</span>
+                        </button>
+                        <button
+                            class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            :class="{ 'text-primary bg-primary/10': showLabel }"
+                            @click="showLabel = !showLabel"
+                            title="显示标签"
+                        >
+                            <span class="text-xl font-bold leading-none">T</span>
                         </button>
                         <button 
                              class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
