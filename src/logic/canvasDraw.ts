@@ -221,7 +221,7 @@ export class CanvasGenerator {
                 templateConfig?.creator
             )
         } else {
-            await this.drawWatermark(canvasWidth, canvasHeight, padding)
+            await this.drawWatermark(canvasWidth, canvasHeight, padding, options.variant)
         }
 
         return this.canvas.toDataURL('image/png')
@@ -386,7 +386,24 @@ export class CanvasGenerator {
         this.ctx.stroke()
     }
 
-    private async drawWatermark(width: number, height: number, padding: number) {
+    private async drawWatermark(width: number, height: number, padding: number, variant?: string) {
+        const isStandard = variant !== 'challenge'
+
+        // ========== 左下角水印 (仅 standard 版本) ==========
+        if (isStandard) {
+            const leftX = padding
+            const leftY = height - padding / 2
+
+            this.ctx.save()
+            this.ctx.textAlign = 'left'
+            this.ctx.textBaseline = 'bottom'
+            this.ctx.font = `bold ${20}px ${THEME.typography.fontFamily}`
+            this.ctx.fillStyle = '#9ca3af' // 灰色，与右下角形成对比
+            this.ctx.fillText('oshigrid.me', leftX, leftY)
+            this.ctx.restore()
+        }
+
+        // ========== 右下角水印 ==========
         const x = width - padding
         const y = height - padding / 2
 
