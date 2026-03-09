@@ -23,7 +23,8 @@ const offset = ref(0)
 const hasMore = ref(true)
 const trendingList = shallowRef<any[]>([])
 const trendingLoading = ref(true)
-const activePeriod = ref<'12h' | '24h' | 'week' | 'all'>('week')
+// UX优化: 记住用户上次选择的热门榜单周期，避免每次都要重新点击
+const activePeriod = useStorage<'12h' | '24h' | 'week' | 'all'>('anime-grid-trending-period', 'week')
 
 async function fetchTrending() {
   trendingLoading.value = true
@@ -48,7 +49,8 @@ onMounted(() => {
     fetchTrending()
 })
 
-const activeTab = ref<'search' | 'custom'>('search')
+// UX优化: 记住用户上次选择的Tab（搜索/自定义上传），避免每次都要重新点击
+const activeTab = useStorage<'search' | 'custom'>('anime-grid-active-tab', 'search')
 // UX优化: 记住用户上次选择的搜索类型，避免每次都要重新点击
 const searchType = useStorage<'character' | 'anime' | 'manga' | 'novel' | 'game' | 'music' | 'real' | 'person'>('anime-grid-search-type', 'character')
 const searchYear = ref('')
