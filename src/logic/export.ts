@@ -1,34 +1,61 @@
 import QRCode from 'qrcode'
 import { CanvasGenerator } from './canvasDraw'
-import type { GridItem } from '~/types'
+import type { ExportTemplateConfig, GridItem } from '~/types'
 
-export async function exportGridAsImage(list: GridItem[], templateId: string, customTitle: string, fileName: string, showName: boolean = false, templateConfig?: any, qrCodeUrl?: string, variant?: 'standard' | 'challenge', templateName?: string, showLabel: boolean = true) {
+export async function exportGridAsImage(
+    list: GridItem[],
+    templateId: string,
+    customTitle: string,
+    fileName: string,
+    showName: boolean = false,
+    templateConfig?: ExportTemplateConfig,
+    qrCodeUrl?: string,
+    variant?: 'standard' | 'challenge',
+    templateName?: string,
+    showLabel: boolean = true,
+    showQRCode: boolean = true,
+) {
     try {
-        // Generate QR Code if needed (for challenge mode)
         if (variant === 'challenge' && !qrCodeUrl) {
             try {
-                // Use current URL
                 qrCodeUrl = await QRCode.toDataURL(window.location.href, { margin: 1 })
             } catch (e) {
                 console.warn('QR Code generation failed', e)
             }
         }
 
-        const generator = new CanvasGenerator()
-        const dataUrl = await generator.generate({ list, templateId, customTitle, showName, templateConfig, qrCodeUrl, variant, templateName, showLabel })
+        if (variant === 'standard' && showQRCode && !qrCodeUrl) {
+            try {
+                qrCodeUrl = await QRCode.toDataURL(window.location.origin, { margin: 1, width: 200 })
+            } catch (e) {
+                console.warn('QR Code generation failed', e)
+            }
+        }
 
-        // Detect Mobile/iOS
+        const generator = new CanvasGenerator()
+        const dataUrl = await generator.generate({
+            list,
+            templateId,
+            customTitle,
+            showName,
+            templateConfig,
+            qrCodeUrl,
+            variant,
+            templateName,
+            showLabel,
+            showQRCode,
+        })
+
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
 
         if (isIOS) {
-            // iOS Safari doesn't support download attribute well, open in new tab
             const win = window.open()
             if (win) {
-                win.document.write('<img src="' + dataUrl + '" style="width:100%"/>')
-                win.document.title = "长按保存图片"
-            } else {
-                // Fallback if popup blocked
-                // window.location.href = dataUrl // This often fails or replaces page
+                const img = win.document.createElement('img')
+                img.src = dataUrl
+                img.style.width = '100%'
+                win.document.body.replaceChildren(img)
+                win.document.title = '长按保存图片'
             }
         } else {
             const link = document.createElement('a')

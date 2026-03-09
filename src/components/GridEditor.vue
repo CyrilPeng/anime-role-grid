@@ -77,9 +77,10 @@ const showSearch = ref(false)
 const showJoinGroupModal = ref(false)
 const showCharacterName = ref(false)
 const showLabel = ref(true) // 新增：控制标签文字显示
+const showQRCode = ref(true)
 const currentSlotIndex = ref<number | null>(null)
-const fillerName = ref('') 
-const canvasScale = ref(1) 
+const fillerName = ref('')
+const canvasScale = ref(1)
 
 // Reuse Logic
 const saving = ref(false)
@@ -214,7 +215,8 @@ async function handleSave() {
         undefined,
         modeIsCustom.value ? 'challenge' : 'standard',
         templateName,
-        showLabel.value
+        showLabel.value,
+        showQRCode.value
     )
 
     // --- REFACTORED: Use Global Dispatcher ---
@@ -423,13 +425,23 @@ function handleVideoExport(settings: any) {
                              </button>
 
                             <button
-                               class="w-full mt-2 py-2 rounded-lg border-2 transition-all font-bold text-gray-400 border-gray-300 hover:border-primary hover:text-primary flex items-center justify-center gap-2"
-                               :class="{ 'bg-primary/5 border-primary text-primary': showLabel }"
-                               @click="showLabel = !showLabel"
-                             >
-                               <div :class="showLabel ? 'i-carbon-checkbox-checked' : 'i-carbon-checkbox'" class="text-xl" />
-                               <span>显示标签文字</span>
-                             </button>
+                              class="w-full mt-2 py-2 rounded-lg border-2 transition-all font-bold text-gray-400 border-gray-300 hover:border-primary hover:text-primary flex items-center justify-center gap-2"
+                              :class="{ 'bg-primary/5 border-primary text-primary': showLabel }"
+                              @click="showLabel = !showLabel"
+                            >
+                              <div :class="showLabel ? 'i-carbon-checkbox-checked' : 'i-carbon-checkbox'" class="text-xl" />
+                              <span>显示标签文字</span>
+                            </button>
+
+                            <button
+                              v-if="!modeIsCustom"
+                              class="w-full mt-2 py-2 rounded-lg border-2 transition-all font-bold text-gray-400 border-gray-300 hover:border-primary hover:text-primary flex items-center justify-center gap-2"
+                              :class="{ 'bg-primary/5 border-primary text-primary': showQRCode }"
+                              @click="showQRCode = !showQRCode"
+                            >
+                              <div :class="showQRCode ? 'i-carbon-checkbox-checked' : 'i-carbon-checkbox'" class="text-xl" />
+                              <span>显示二维码</span>
+                            </button>
 
                             <button
                                 class="w-full mt-2 py-2 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 font-bold hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"

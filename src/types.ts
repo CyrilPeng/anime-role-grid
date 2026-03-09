@@ -49,6 +49,12 @@ export interface BgmPersonSearchResultItem {
 
 export type BgmSearchResultItem = BgmCharacterSearchResultItem | BgmSubjectSearchResultItem | BgmPersonSearchResultItem;
 
+export interface ExportTemplateConfig {
+    cols: number;
+    creator?: string;
+    filler?: string;
+}
+
 // 角色详情数据类型
 export interface GridItemCharacter {
     id: number | string;

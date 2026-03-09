@@ -1,4 +1,4 @@
-import type { GridItem } from '~/types'
+import type { ExportTemplateConfig, GridItem } from '~/types'
 import { TEMPLATES } from '~/logic/templates'
 import { THEME } from '~/logic/constants/theme'
 
@@ -9,13 +9,17 @@ const CELL_HEIGHT = CELL_WIDTH / THEME.layout.cellAspectRatio
 const BORDER_WIDTH = 4
 const LABEL_HEIGHT = CELL_HEIGHT * THEME.layout.labelHeightRatio
 
+const STANDARD_WATERMARK_HEIGHT = 60
+const STANDARD_QR_WATERMARK_HEIGHT = 180
+
 interface DrawOptions {
     list: GridItem[]
     templateId: string
     customTitle: string
     showName?: boolean
     showLabel?: boolean
-    templateConfig?: { cols: number, creator?: string, filler?: string }
+    showQRCode?: boolean
+    templateConfig?: ExportTemplateConfig
     qrCodeUrl?: string
     variant?: 'standard' | 'challenge'
     templateName?: string
@@ -117,6 +121,20 @@ export class CanvasGenerator {
         }
     }
 
+    private getStandardFooterLayout(width: number): { qrSize: number, logoSize: number, fontSize: number, textGap: number } {
+        const safeWidth = width - 120
+
+        if (safeWidth <= 540) {
+            return { qrSize: 90, logoSize: 42, fontSize: 30, textGap: 14 }
+        }
+
+        if (safeWidth <= 780) {
+            return { qrSize: 110, logoSize: 48, fontSize: 34, textGap: 16 }
+        }
+
+        return { qrSize: 130, logoSize: 54, fontSize: 38, textGap: 18 }
+    }
+
     async generate(options: DrawOptions): Promise<string> {
         const { list, templateId, customTitle, templateConfig } = options
         const template = TEMPLATES.find(t => t.id === templateId)
@@ -134,13 +152,14 @@ export class CanvasGenerator {
         const actualCellHeight = CELL_HEIGHT + nameHeight
 
         const isChallenge = options.variant === 'challenge'
+        const hasStandardQRCode = options.variant !== 'challenge' && options.showQRCode !== false && !!options.qrCodeUrl
         const gridHeight = rows * actualCellHeight
         const titleHeight = isChallenge ? 250 : 160
         const padding = 60
         const canvasWidth = gridWidth + (padding * 2)
 
         // Calculate Footer Layout ahead of time
-        let watermarkHeight = 60
+        let watermarkHeight = hasStandardQRCode ? STANDARD_QR_WATERMARK_HEIGHT : STANDARD_WATERMARK_HEIGHT
         let footerLayout: { mode: 'horizontal' | 'vertical', height: number } = { mode: 'horizontal', height: 160 }
 
         if (isChallenge) {
@@ -221,7 +240,7 @@ export class CanvasGenerator {
                 templateConfig?.creator
             )
         } else {
-            await this.drawWatermark(canvasWidth, canvasHeight, padding, options.variant)
+            await this.drawWatermark(canvasWidth, canvasHeight, padding, options.variant, options.qrCodeUrl, options.showQRCode)
         }
 
         return this.canvas.toDataURL('image/png')
@@ -386,34 +405,71 @@ export class CanvasGenerator {
         this.ctx.stroke()
     }
 
-    private async drawWatermark(width: number, height: number, padding: number, variant?: string) {
+    private async drawWatermark(width: number, height: number, padding: number, variant?: string, qrCodeUrl?: string, showQRCode?: boolean) {
         const isStandard = variant !== 'challenge'
-
-        // ========== 左下角水印 (仅 standard 版本) ==========
-        if (isStandard) {
-            const leftX = padding
-            const leftY = height - padding / 2
-
-            this.ctx.save()
-            this.ctx.textAlign = 'left'
-            this.ctx.textBaseline = 'bottom'
-            this.ctx.font = `bold ${20}px ${THEME.typography.fontFamily}`
-            this.ctx.fillStyle = '#9ca3af' // 灰色，与右下角形成对比
-            this.ctx.fillText('oshigrid.me', leftX, leftY)
-            this.ctx.restore()
-        }
-
-        // ========== 右下角水印 ==========
+        const hasStandardQRCode = isStandard && showQRCode !== false && !!qrCodeUrl
+        const leftY = height - padding / 2
         const x = width - padding
-        const y = height - padding / 2
+        const y = leftY
 
         this.ctx.save()
-        this.ctx.textAlign = 'right'
         this.ctx.textBaseline = 'bottom'
 
-        this.ctx.font = `bold ${28}px ${THEME.typography.fontFamily}`
+        if (hasStandardQRCode && qrCodeUrl) {
+            const { qrSize, logoSize, fontSize, textGap } = this.getStandardFooterLayout(width)
 
-        // Draw colored text parts
+            try {
+                const [logo, qr] = await Promise.all([
+                    this.loadImage('/logo.png'),
+                    this.loadImage(qrCodeUrl)
+                ])
+
+                const qrX = padding
+                const qrY = height - STANDARD_QR_WATERMARK_HEIGHT + (STANDARD_QR_WATERMARK_HEIGHT - qrSize) / 2
+                this.ctx.drawImage(qr, qrX, qrY, qrSize, qrSize)
+
+                this.ctx.textAlign = 'right'
+                this.ctx.font = `bold ${fontSize}px ${THEME.typography.fontFamily}`
+
+                const part1 = '【我推'
+                const part2 = '的'
+                const part3 = '格子】'
+                const w2 = this.ctx.measureText(part2).width
+                const w3 = this.ctx.measureText(part3).width
+
+                this.ctx.drawImage(logo, x - logoSize, y - logoSize + 8, logoSize, logoSize)
+
+                const textEndX = x - logoSize - textGap
+                this.ctx.fillStyle = THEME.colors.watermark
+                this.ctx.fillText(part3, textEndX, y)
+
+                this.ctx.fillStyle = THEME.colors.accent
+                this.ctx.fillText(part2, textEndX - w3, y)
+
+                this.ctx.fillStyle = THEME.colors.watermark
+                this.ctx.fillText(part1, textEndX - w3 - w2, y)
+            } catch (e) {
+                console.warn('Standard watermark draw failed', e)
+                this.ctx.textAlign = 'left'
+                this.ctx.font = `bold 20px ${THEME.typography.fontFamily}`
+                this.ctx.fillStyle = '#9ca3af'
+                this.ctx.fillText('oshigrid.me', padding, leftY)
+            }
+
+            this.ctx.restore()
+            return
+        }
+
+        if (isStandard) {
+            this.ctx.textAlign = 'left'
+            this.ctx.font = `bold 20px ${THEME.typography.fontFamily}`
+            this.ctx.fillStyle = '#9ca3af'
+            this.ctx.fillText('oshigrid.me', padding, leftY)
+        }
+
+        this.ctx.textAlign = 'right'
+        this.ctx.font = `bold 28px ${THEME.typography.fontFamily}`
+
         const part1 = '【我推'
         const part2 = '的'
         const part3 = '格子】'
@@ -436,7 +492,6 @@ export class CanvasGenerator {
 
             this.ctx.fillStyle = THEME.colors.watermark
             this.ctx.fillText(part1, textEndX - w3 - w2, y)
-
         } catch (e) {
             this.ctx.fillStyle = THEME.colors.watermark
             this.ctx.fillText('【我推的格子】', x, y)
